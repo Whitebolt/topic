@@ -1,1 +1,71 @@
-{"PubSub()":{"longname":"PubSub","name":"PubSub","kind":"constructor","description":"Create a new PubSub instance.","memberof":"PubSub","params":[],"returns":[{"type":{"names":["PubSub"]},"description":"New PubSub instance."}],"order":1},"PubSub":{"longname":"PubSub","name":"PubSub","scope":"global","kind":"class","access":"public","meta":{"lineno":10,"filename":"index.js","path":"/home/simpo/Projects/topic"},"order":0}}
+{
+  "PubSub()": {
+    "longname": "PubSub",
+    "name": "PubSub",
+    "kind": "constructor",
+    "description": "Create a new PubSub instance.",
+    "memberof": "PubSub",
+    "params": [],
+    "returns": [
+      {
+        "type": {
+          "names": [
+            "PubSub"
+          ]
+        },
+        "description": "New PubSub instance."
+      }
+    ],
+    "order": 2
+  },
+  "PubSub": {
+    "longname": "PubSub",
+    "name": "PubSub",
+    "scope": "global",
+    "kind": "class",
+    "access": "public",
+    "meta": {
+      "lineno": 68,
+      "filename": "index.js",
+      "path": "/home/simpo/Projects/topic"
+    },
+    "order": 1
+  },
+  "_randomString": {
+    "longname": "_randomString",
+    "name": "_randomString",
+    "scope": "global",
+    "kind": "function",
+    "description": "Generate a random string of specified length.",
+    "params": [
+      {
+        "type": {
+          "names": [
+            "integer"
+          ]
+        },
+        "optional": true,
+        "defaultvalue": 32,
+        "description": "The length of string to return.",
+        "name": "length"
+      }
+    ],
+    "returns": [
+      {
+        "type": {
+          "names": [
+            "string"
+          ]
+        },
+        "description": "The random string."
+      }
+    ],
+    "access": "public",
+    "meta": {
+      "lineno": 36,
+      "filename": "index.js",
+      "path": "/home/simpo/Projects/topic"
+    },
+    "order": 0
+  }
+}
