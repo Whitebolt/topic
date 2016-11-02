@@ -1,0 +1,47 @@
+{
+  "name": "topic-subscribe",
+  "version": "0.0.1",
+  "description": "PubSub module with subscription filtering.",
+  "main": "index.js",
+  "scripts": {
+    "test": "./bin/test"
+  },
+  "engines": ">=6.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Whitebolt/topic-subscribe.git"
+  },
+  "keywords": [
+    "PubSub",
+    "Subscription",
+    "Topics",
+    "Events",
+    "On"
+  ],
+  "author": {
+    "email": "hello@whitebolt.net",
+    "name": "Whitebolt"
+  },
+  "contributors": [
+    {
+      "email": "stephen@whitebolt.net",
+      "name": "Stephen Simpson"
+    },
+    {
+      "email": "kris@whitebolt.net",
+      "name": "Kristjan Allikas"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/whitebolt/topic-subscribe/issues"
+  },
+  "homepage": "https://github.com/whitebolt/topic-subscribe#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "jsdoc-parse": "^1.1.0",
+    "mocha": "^2.3.3"
+  }
+}
