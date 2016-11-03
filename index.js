@@ -4,7 +4,7 @@ const xSlashRegExpChars = /[|\\{}()[\]^$+?.]/g;
 const xConvertChannel = [
 	{search: new RegExp('\/\*\/'), replace:'\/[^\/]*?\/'},
 	{search: new RegExp('\/\*$'), replace:'\/.*$'},
-	{search: new RegExp('\/\*\*\/'), replace:'\/.*\/'}
+	{search: new RegExp('\/[*]{2,2}\/'), replace:'\/.*\/'}
 ];
 const rndChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
 
@@ -37,6 +37,7 @@ function _makeArrayConvertFunction(ary) {
  *
  * Will convert 'undefined' to an empty array.
  *
+ * @private
  * @param {*} ary                                                   Item to
  * 																	return or
  * 																	convert to
@@ -81,7 +82,7 @@ function _unique(ary) {
 /**
  * Generate a random string of specified length.
  *
- * @public
+ * @private
  * @param {integer} [length=32] The length of string to return.
  * @returns {string}            The random string.
  */
@@ -118,7 +119,7 @@ function _regExpEscape(txt) {
 function _channelMatcherToRegExp(matcher) {
 	let pattern = _regExpEscape(matcher);
 	xConvertChannel.forEach(converter=>pattern.replace(converter.search, converter.replace));
-	return pattern;
+	return new RegExp(pattern);
 }
 
 function _filterUniqueCallbacks(callbacks) {
@@ -135,8 +136,9 @@ function _filterChannels(broadcastChannel, ons) {
 	let callbacks = [];
 
 	for (let channel of ons.keys()) {
-		let _channel = ons.get(channel);
-		if (_channel.matcher.test(broadcastChannel)) callbacks.push(_channel);
+		ons.get(channel).forEach(channel=>{
+			if (channel.matcher.test(broadcastChannel)) callbacks.push(channel);
+		});
 	}
 
 	return _filterUniqueCallbacks(_flattenDeep(callbacks));
@@ -145,6 +147,16 @@ function _filterChannels(broadcastChannel, ons) {
 function _getCallbacks(ons, channel) {
 	if (!ons.has(channel)) ons.set(channel, []);
 	return ons.get(channel);
+}
+
+function _createCallbackObject(channel, callback, options) {
+	let id = _randomString();
+	return {
+		callback,
+		id,
+		matcher:_channelMatcherToRegExp(channel),
+		context:options.context
+	};
 }
 
 /**
@@ -156,16 +168,6 @@ function _getCallbacks(ons, channel) {
  */
 function PubSub() {
 	const ons = new Map();
-
-	function _createCallbackObject(channel, callback, options) {
-		let id = _randomString();
-		return {
-			callback,
-			id,
-			matcher:_channelMatcherToRegExp(channel),
-			context:options.context
-		};
-	}
 
 	function _subscribe(channel, callback, options) {
 		let callbacks = _getCallbacks(ons, channel);
@@ -180,6 +182,8 @@ function PubSub() {
 		 * Publish data to given channel, firing any subscriptions.
 		 *
 		 * @public
+		 * @memberof PubSub
+		 * @instance
 		 * @param {string|Array} channel	Channel(s) to publish to.  If an
 		 * 									array then publish to more than one
 		 * 									channel.
@@ -196,6 +200,9 @@ function PubSub() {
 		 * channel.  Fire callback when anything is published on subscribed
 		 * channels subscribed to.
 		 *
+		 * @public
+		 * @memberof PubSub
+		 * @instance
 		 * @param {string|Array} channel				Channel(s) to
 		 * 												subscribe to.
 		 * @param {Function} callback					Callback to fire when
@@ -203,7 +210,7 @@ function PubSub() {
 		 * @param {Object} [options=defaultOptions]		Subscription options.
 		 */
 		subscribe: (channel, callback, options=defaultOptions)=>{
-			if (! isArray(channel)) return _subscribe(channel, callback, options);
+			if (! Array.isArray(channel)) return _subscribe(channel, callback, options);
 			let unsubscribes = channel.map(channel=>constructor.subscribe(channel, callback, options));
 			return ()=>unsubscribes.forEach(unsubscribe=>unsubscribe());
 		},
@@ -212,6 +219,9 @@ function PubSub() {
 		 * Subscribe just once to the given channel(s).  After first callback,
 		 * unsubscribe from channel(s).
 		 *
+		 * @public
+		 * @memberof PubSub
+		 * @instance
 		 * @param {string|Array} channel				Channel(s) to
 		 * 												subscribe to.
 		 * @param {Function} callback					Callback to fire when
@@ -219,14 +229,15 @@ function PubSub() {
 		 * @param {Object} [options=defaultOptions]		Subscription options.
 		 */
 		once: (channel, callback, options=defaultOptions)=>{
-			let unsubscribe = constructor.on(channel, ()=>{
+			let unsubscribe = constructor.subscribe(channel, ()=>{
 				unsubscribe();
 				callback();
 			}, options);
+			return unsubscribe;
 		}
 	};
 
 	return constructor;
-}
+};
 
 module.exports = PubSub;
