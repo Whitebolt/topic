@@ -1,5 +1,13 @@
 'use strict';
 
+const xSlashRegExpChars = /[|\\{}()[\]^$+?.]/g;
+const xConvertChannel = [
+	{search: new RegExp('\/\*\/'), replace:'\/[^\/]*?\/'},
+	{search: new RegExp('\/\*$'), replace:'\/.*$'},
+	{search: new RegExp('\/\*\*\/'), replace:'\/.*\/'}
+];
+
+
 const defaultOptions = {
 
 };
@@ -77,9 +85,9 @@ function _unique(ary) {
  * @returns {Array}					List of channels.
  */
 function _expandChannels(channel) {
-	let channels = _makeArray(channel).map(channel=>{
+	let channels = _makeArray(channel).map((channel, n, channels)=>{
 		let _channel = channel.split('/').filter(channel=>channel);
-		return _channel.map((topic, n)=>'/' + _channel.slice(0, n).join('/'));
+		return _channel.map((topic, n)=>'/'+_channel.slice(0, n).join('/')+((n>=(channels.length-1))?'':'/*'));
 	});
 
 	return _unique(_flattenDeep(channels));
@@ -126,6 +134,35 @@ function _createUnsubscribe(ons, channel, id) {
 	};
 }
 
+function _regExpEscape(txt) {
+	return txt.replace(xSlashRegExpChars, '\\$&');
+}
+
+function _channelMatcherToRegExp(matcher) {
+	let pattern = _regExpEscape(matcher);
+	xConvertChannel.forEach(converter=>pattern.replace(converter.search, converter.replace));
+	return pattern;
+}
+
+function _filterChannels(broadcastChannel, ons) {
+	let callbacks = [];
+	let ids = new Map();
+
+	for (let channel of ons.keys()) {
+		let _channel = ons.get(channel);
+		if (_channel.matcher.test(broadcastChannel)) {
+			callbacks = callbacks.concat(_channel);
+		}
+	}
+
+	return callbacks.filter(callback=>{
+		if (!ids.has(callback.id)) {
+			ids.set(callback.id, true);
+			return true;
+		}
+	});
+}
+
 /**
  * Create a new PubSub instance.
  *
@@ -148,7 +185,7 @@ function PubSub() {
 		 */
 		publish: (channel, data)=>{
 			_expandChannels(channel).forEach(channel=>{
-				if (ons.has(channel)) ons.get(channel).forEach(callback=>callback(data));
+				_filterChannels(channel, ons).forEach(callback=>callback.callback(data));
 			});
 		},
 
@@ -172,7 +209,12 @@ function PubSub() {
 			if (!ons.has(channel)) ons.set(channel, []);
 			let callbacks = ons.get(channel);
 			let id = _randomString();
-			let _callback = {callback, id, context:options.context};
+			let _callback = {
+				callback,
+				id,
+				matcher: _channelMatcherToRegExp(channel),
+				context:options.context
+			};
 			callbacks.push(_callback);
 			ons.set(channel, callbacks);
 
