@@ -48,6 +48,54 @@ describe(describeItem(packageInfo), ()=>{
 
 		});
 
+		describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=>{
+			it('Broadcasting should fire broadcast channel', ()=>{
+				let topics = PubSub();
+				let count = 0;
+
+				topics.subscribe('/test', ()=>count++);
+
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 1);
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 2);
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 3);
+			});
+
+			it('Broadcasting should fire broadcast channel and descendants', ()=>{
+				let topics = PubSub();
+				let count = 0;
+
+				topics.subscribe('/test', ()=>count++);
+				topics.subscribe('/test/1', ()=>count++);
+				topics.subscribe('/test/1/2/3/4/5', ()=>count++);
+
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 3);
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 6);
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 9);
+			});
+
+			it('Broadcasting should take account of any filtering with * symbol', ()=>{
+				let topics = PubSub();
+				let count = 0;
+
+				topics.subscribe('/test', ()=>count++);
+				topics.subscribe('/test/1', ()=>count++);
+				topics.subscribe('/test/1/2/3/4/5', ()=>count++);
+
+				topics.broadcast('/test/*', 'hello world');
+				assert.equal(count, 2);
+				topics.broadcast('/test/**/2', 'hello world');
+				assert.equal(count, 3);
+				topics.broadcast('/test', 'hello world');
+				assert.equal(count, 6);
+			});
+		});
+
 		describe(describeItem(jsDoc, 'PubSub#subscribe'), ()=>{
 			it('Subscribing should return an unsubscribe function', ()=>{
 				let topics = PubSub();
@@ -65,7 +113,7 @@ describe(describeItem(packageInfo), ()=>{
 				assert.equal(count, 2);
 			});
 
-			it('The subscribe() method should accept arrays for the channel and subscribe to each channel in the array.', ()=>{
+			it('The subscribe() method should accept arrays for the channel and subscribe to each channel in the array', ()=>{
 				let topics = PubSub();
 				let count = 0;
 				let unsubscribe = topics.subscribe(['/test1', '/test2', '/test3', '/test4'], ()=>count++);
@@ -85,24 +133,29 @@ describe(describeItem(packageInfo), ()=>{
 				let topics = PubSub();
 				let count1 = 0;
 				let count2 = 0;
+				let count3 = 0;
 
 				topics.subscribe('/test', ()=>count1++);
 				topics.subscribe('/test/*', ()=>count2++);
+				topics.subscribe('/test/1', ()=>count3++);
 
 				topics.publish('/test', 'hello world');
 				assert.equal(count1, 1);
 				assert.equal(count2, 0);
+				assert.equal(count3, 0);
 				topics.publish('/test/1', 'hello world');
 				topics.publish('/test/2', 'hello world');
 				topics.publish('/test/3', 'hello world');
 				assert.equal(count1, 4);
 				assert.equal(count2, 3);
+				assert.equal(count3, 1);
 				topics.publish('/test/test/test', 'hello world');
 				assert.equal(count1, 5);
 				assert.equal(count2, 4);
+				assert.equal(count3, 1);
 			});
 
-			it('The subscribe function should be able to subscribe to parent channels and receive child messages for specific grand-children with non-specfic parents.', ()=>{
+			it('The subscribe function should be able to subscribe to parent channels and receive child messages for specific grand-children with non-specfic parents', ()=>{
 				let topics = PubSub();
 				let count1 = 0;
 				let count2 = 0;
@@ -146,7 +199,7 @@ describe(describeItem(packageInfo), ()=>{
 				assert.equal(count, 1);
 			});
 
-			it('Subscribing using once() should fire only once when something is pulished on subscribed to channel.', ()=>{
+			it('Subscribing using once() should fire only once when something is pulished on subscribed to channel', ()=>{
 				let topics = PubSub();
 				let count = 0;
 				let unsubscribe = topics.once('/test', ()=>count++);

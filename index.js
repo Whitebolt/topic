@@ -1,9 +1,13 @@
 'use strict';
 
 const xSlashRegExpChars = /[|\\{}()[\]^$+?.]/g;
-const _xConvertChannel = [
+const _xConvertChannel1 = [
 	{search: /\/\*{1,2}\//g, replace:'\\\/[^/]*?\\\/'},
 	{search: /\/\*$/, replace:'\/.*'}
+];
+const _xConvertChannel2 = [
+	{search: /\/\*{1,2}\//g, replace:'\\\/[^/]*?\\\/'},
+	{search: /\/\*$/, replace:'\/.+'}
 ];
 const rndChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
 
@@ -117,7 +121,7 @@ function _regExpEscape(txt) {
 
 function _channelMatcherToRegExp(matcher) {
 	let pattern = _regExpEscape(matcher);
-	_xConvertChannel.forEach(converter=>{
+	_xConvertChannel1.forEach(converter=>{
 		pattern = pattern.replace(converter.search, converter.replace)
 	});
 	return new RegExp(pattern);
@@ -133,13 +137,31 @@ function _filterUniqueCallbacks(callbacks) {
 	});
 }
 
-function _filterChannels(broadcastChannel, ons) {
+function _filterChannels(publishChannel, ons) {
 	let callbacks = [];
 
 	for (let channel of ons.keys()) {
 		ons.get(channel).forEach(channel=>{
-			if (channel.matcher.test(broadcastChannel)) callbacks.push(channel);
+			if (channel.matcher.test(publishChannel)) callbacks.push(channel);
 		});
+	}
+
+	return _filterUniqueCallbacks(_flattenDeep(callbacks));
+}
+
+function _filterChannelsBroadcast(broadcastChannel, ons) {
+	let callbacks = [];
+
+	let matcher = _regExpEscape(broadcastChannel);
+	_xConvertChannel2.forEach(converter=>{
+		matcher = matcher.replace(converter.search, converter.replace)
+	});
+	let _matcher = new RegExp(matcher);
+
+	for (let channel of ons.keys()) {
+		if (_matcher.test(channel)) {
+			ons.get(channel).forEach(channel=> callbacks.push(channel));
+		}
 	}
 
 	return _filterUniqueCallbacks(_flattenDeep(callbacks));
@@ -194,6 +216,26 @@ function PubSub() {
 		publish: (channel, data)=>{
 			_makeArray(channel).forEach(channel=>{
 				_filterChannels(channel, ons).forEach(callback=>callback.callback(data));
+			});
+		},
+
+		/**
+		 * Broadcast data on a given channel, firing any subscriptions.
+		 * A broadcast causes all child channels to receive the message as well.
+		 * This is the opposite to publish where parents receive from children
+		 * rather than children from parents.
+		 *
+		 * @public
+		 * @memberof PubSub
+		 * @instance
+		 * @param {string|Array} channel	Channel(s) to broadcast on.  If an
+		 * 									array then broadcast to more than
+		 * 									one channel.
+		 * @param {*} data					Data to broadcast.
+		 */
+		broadcast: (channel, data)=>{
+			_makeArray(channel).forEach(channel=>{
+				_filterChannelsBroadcast(channel, ons).forEach(callback=>callback.callback(data));
 			});
 		},
 
