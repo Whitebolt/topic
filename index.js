@@ -223,9 +223,11 @@ function PubSub() {
 		 * 									channel.
 		 * @param {*} data					Data to publish.
 		 */
-		publish: (channel, data)=>{
+		publish: (channel,...data)=>{
 			_makeArray(channel).forEach(channel=>{
-				_filterChannels(channel, ons).forEach(callback=>callback.callback(data));
+				_filterChannels(channel, ons).forEach(
+					callback=>callback.callback.apply(callback.callback, data)
+				);
 			});
 		},
 
@@ -243,9 +245,11 @@ function PubSub() {
 		 * 									one channel.
 		 * @param {*} data					Data to broadcast.
 		 */
-		broadcast: (channel, data)=>{
+		broadcast: (channel,...data)=>{
 			_makeArray(channel).forEach(channel=>{
-				_filterChannelsBroadcast(channel, ons).forEach(callback=>callback.callback(data));
+				_filterChannelsBroadcast(channel, ons).forEach(
+					callback=>callback.callback.apply(callback.callback, data)
+				);
 			});
 		},
 
