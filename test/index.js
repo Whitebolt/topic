@@ -80,6 +80,53 @@ describe(describeItem(packageInfo), ()=>{
 				topics.publish('/test5', 'hello world');
 				assert.equal(count, 4);
 			});
+
+			it('The subscribe function should be able to subscribe to parent channels and receive child messages', ()=>{
+				let topics = PubSub();
+				let count1 = 0;
+				let count2 = 0;
+
+				topics.subscribe('/test', ()=>count1++);
+				topics.subscribe('/test/*', ()=>count2++);
+
+				topics.publish('/test', 'hello world');
+				assert.equal(count1, 1);
+				assert.equal(count2, 0);
+				topics.publish('/test/1', 'hello world');
+				topics.publish('/test/2', 'hello world');
+				topics.publish('/test/3', 'hello world');
+				assert.equal(count1, 4);
+				assert.equal(count2, 3);
+				topics.publish('/test/test/test', 'hello world');
+				assert.equal(count1, 5);
+				assert.equal(count2, 4);
+			});
+
+			it('The subscribe function should be able to subscribe to parent channels and receive child messages for specific grand-children with non-specfic parents.', ()=>{
+				let topics = PubSub();
+				let count1 = 0;
+				let count2 = 0;
+
+				topics.subscribe('/test/*/test', ()=>count1++);
+				topics.subscribe('/test/**/test', ()=>count2++);
+
+				topics.publish('/test', 'hello world');
+				assert.equal(count1, 0);
+				assert.equal(count2, 0);
+				topics.publish('/test/1', 'hello world');
+				topics.publish('/test/2', 'hello world');
+				topics.publish('/test/3', 'hello world');
+				assert.equal(count1, 0);
+				assert.equal(count2, 0);
+				topics.publish('/test/test/test', 'hello world');
+				assert.equal(count1, 1);
+				assert.equal(count2, 1);
+				topics.publish('/test/1/test', 'hello world');
+				topics.publish('/test/2/test', 'hello world');
+				topics.publish('/test/3/test', 'hello world');
+				assert.equal(count1, 4);
+				assert.equal(count2, 4);
+			});
 		});
 
 		describe(describeItem(jsDoc, 'PubSub#once'), ()=>{

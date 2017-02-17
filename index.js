@@ -1,10 +1,9 @@
 'use strict';
 
 const xSlashRegExpChars = /[|\\{}()[\]^$+?.]/g;
-const xConvertChannel = [
-	{search: new RegExp('\/\*\/'), replace:'\/[^\/]*?\/'},
-	{search: new RegExp('\/\*$'), replace:'\/.*$'},
-	{search: new RegExp('\/[*]{2,2}\/'), replace:'\/.*\/'}
+const _xConvertChannel = [
+	{search: /\/\*{1,2}\//g, replace:'\\\/[^/]*?\\\/'},
+	{search: /\/\*$/, replace:'\/.*'}
 ];
 const rndChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
 
@@ -118,7 +117,9 @@ function _regExpEscape(txt) {
 
 function _channelMatcherToRegExp(matcher) {
 	let pattern = _regExpEscape(matcher);
-	xConvertChannel.forEach(converter=>pattern.replace(converter.search, converter.replace));
+	_xConvertChannel.forEach(converter=>{
+		pattern = pattern.replace(converter.search, converter.replace)
+	});
 	return new RegExp(pattern);
 }
 
@@ -151,6 +152,7 @@ function _getCallbacks(ons, channel) {
 
 function _createCallbackObject(channel, callback, options) {
 	let id = _randomString();
+
 	return {
 		callback,
 		id,
@@ -210,7 +212,7 @@ function PubSub() {
 		 * @param {Object} [options=defaultOptions]		Subscription options.
 		 */
 		subscribe: (channel, callback, options=defaultOptions)=>{
-			if (! Array.isArray(channel)) return _subscribe(channel, callback, options);
+			if (!Array.isArray(channel)) return _subscribe(channel, callback, options);
 			let unsubscribes = channel.map(channel=>constructor.subscribe(channel, callback, options));
 			return ()=>unsubscribes.forEach(unsubscribe=>unsubscribe());
 		},
