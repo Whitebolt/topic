@@ -2,11 +2,14 @@
 
 const xSlashRegExpChars = /[|\\{}()[\]^$+?.]/g;
 const _xConvertChannel1 = [
-	{search: /\/\*{1,2}\//g, replace:'\\\/[^/]*?\\\/'},
-	{search: /\/\*$/, replace:'\/.*'}
+	{search: /\/\*\//g, replace:'/[^/]*?/'},
+	{search: /\/\*\*\//g, replace:'/.*/'},
+	{search: /\/\*\*$/, replace:'/.*'},
+	{search: /\/\*$/, replace:'/[^/]*?$'}
 ];
 const _xConvertChannel2 = [
-	{search: /\/\*{1,2}\//g, replace:'\\\/[^/]*?\\\/'},
+	{search: /\/\*\//g, replace:'/[^/]*?/'},
+	{search: /\/\*\*\//g, replace:'/.*/'},
 	{search: /\/\*$/, replace:'\/.+'}
 ];
 const rndChars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'.split('');
@@ -124,7 +127,8 @@ function _channelMatcherToRegExp(matcher) {
 	_xConvertChannel1.forEach(converter=>{
 		pattern = pattern.replace(converter.search, converter.replace)
 	});
-	return new RegExp(pattern);
+
+	return new RegExp(('^'+pattern+'.*$').replace('.*.*','.*'));
 }
 
 function _filterUniqueCallbacks(callbacks) {
@@ -142,6 +146,7 @@ function _filterChannels(publishChannel, ons) {
 
 	for (let channel of ons.keys()) {
 		ons.get(channel).forEach(channel=>{
+			//console.log(channel.matcher.test(publishChannel), channel.matcher, publishChannel);
 			if (channel.matcher.test(publishChannel)) callbacks.push(channel);
 		});
 	}
@@ -149,17 +154,22 @@ function _filterChannels(publishChannel, ons) {
 	return _filterUniqueCallbacks(_flattenDeep(callbacks));
 }
 
-function _filterChannelsBroadcast(broadcastChannel, ons) {
-	let callbacks = [];
-
+function _getBroadcastMatcher(broadcastChannel) {
 	let matcher = _regExpEscape(broadcastChannel);
 	_xConvertChannel2.forEach(converter=>{
 		matcher = matcher.replace(converter.search, converter.replace)
 	});
-	let _matcher = new RegExp(matcher);
+
+	return new RegExp(matcher);
+}
+
+function _filterChannelsBroadcast(broadcastChannel, ons) {
+	let callbacks = [];
+
+	let matcher = _getBroadcastMatcher(broadcastChannel);
 
 	for (let channel of ons.keys()) {
-		if (_matcher.test(channel)) {
+		if (matcher.test(channel)) {
 			ons.get(channel).forEach(channel=> callbacks.push(channel));
 		}
 	}
