@@ -295,7 +295,13 @@ function PubSub() {
 		}
 	};
 
+	constructor[Symbol.toStringTag] = "PubSub";
+
 	return constructor;
-};
+}
+
+Object.defineProperty(PubSub, Symbol.species, {
+	get: ()=>PubSub()
+});
 
 module.exports = PubSub;
