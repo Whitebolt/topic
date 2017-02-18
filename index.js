@@ -19,6 +19,8 @@ const defaultOptions = {
 
 };
 
+const instances = new Map();
+
 /**
  * Convert a non-array to an array using the formula: if =undefined then make
  * empty array, otherwise create new array making the first item the
@@ -200,8 +202,10 @@ function _createCallbackObject(channel, callback, options) {
  * @public
  * @returns {PubSub}		New PubSub instance.
  */
-function PubSub() {
+function PubSub(instanceName=_randomString()) {
 	const ons = new Map();
+
+	if (instances.has(instanceName)) throw new RangeError('PubSub already has an instance with that name.');
 
 	function _subscribe(channel, callback, options) {
 		let callbacks = _getCallbacks(ons, channel);
@@ -297,11 +301,40 @@ function PubSub() {
 
 	constructor[Symbol.toStringTag] = "PubSub";
 
+	instances.set(instanceName, constructor);
+	instances.set(constructor, true);
+
+	Object.defineProperty(constructor, 'name', {
+		get: ()=>instanceName,
+		set: newInstanceName=>{
+			instances.delete(instanceName);
+			instances.set('newInstanceName', constructor);
+		}
+	});
+
 	return constructor;
 }
 
 Object.defineProperty(PubSub, Symbol.species, {
 	get: ()=>PubSub()
 });
+
+Object.defineProperty(PubSub, Symbol.hasInstance, {
+	get: instance=>instances.has(instance)
+});
+
+PubSub.connect = function(instanceName) {
+	if (instances.has(instanceName)) return instances.get(instanceName);
+	throw new RangeError(`PubSub does not have an instanced called: ${instanceName}`);
+};
+
+PubSub.delete = function(instanceName) {
+	if (!instances.has(instanceName)) throw new RangeError('Cannot delete non-existent instance of PubSub. Have you already deleted it?');
+
+	let ref = instances.get(instanceName);
+	if (instances.has(ref)) instances.delete(ref);
+	instances.delete(instanceName);
+
+};
 
 module.exports = PubSub;
