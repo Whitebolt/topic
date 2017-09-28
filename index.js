@@ -9,7 +9,6 @@ const isNode = (()=>{
 })();
 
 const Private = isNode?require("./lib/Private"):window.topic.Private;
-const Map = isNode?require("./lib/Map"):window.topic.Map;
 const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
 const createError = isNode?require("./lib/errors"):window.topic.createError;
 
@@ -49,10 +48,13 @@ function _publish(subscriptions, channels, message) {
 	const callbacks = new Set();
 
 	subscriptions
-		.map((callbacks, channelSource)=>[cache.get(channelSource).test(channels), callbacks])
-		.filter(item=>item)
-		.forEach((subscriptions, channel)=>{
-			callbacks.add(subscriptions.callback)
+		.forEach((subscription, subscriptionChannel)=>{
+			channels.filter(channel=>{
+				if (isRegExp(subscriptionChannel))  return subscriptionChannel.test(channel);
+				return (subscriptionChannel === channel)
+			}).forEach(subscription=>{
+				callbacks.add(subscription.callback);
+			});
 		});
 
 	callbacks.forEach(callback=>callback(message));
