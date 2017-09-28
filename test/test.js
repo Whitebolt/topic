@@ -144,9 +144,8 @@ describe(describeItem(packageInfo), ()=>{
 			});
 
 			describe('Published messages should be sent to subscribers on same or matching channels.', ()=>{
-				const topics = new PubSub();
-
 				it('Subscribed callbacks should fire when message sent on same channel.', ()=>{
+					const topics = new PubSub();
 					let called = false;
 					topics.subscribe('/test', message=>{
 						called = true;
@@ -158,6 +157,7 @@ describe(describeItem(packageInfo), ()=>{
 				});
 
 				it('Subscribed callbacks should fire up channel tree.', ()=>{
+					const topics = new PubSub();
 					let called = 0;
 
 					['/test/extra/extreme', '/test/extra', '/test', '/'].forEach(channel=>{
@@ -172,7 +172,57 @@ describe(describeItem(packageInfo), ()=>{
 					assert.equal(called, 4, 'Subscriptions did not fire up tree.');
 				});
 
+				it('Subscribed callbacks should fire when more than one channel is published on.', ()=>{
+					const topics = new PubSub();
+					let called = 0;
+
+					[
+						'/test/extra/extreme',
+						'/test/extra',
+						'/test',
+						'/',
+						'/test/extra/extra-extreme'
+					].forEach(channel=>{
+						topics.subscribe(channel, message=>{
+							called++;
+							assert.equal(message.data, 'TEST MESSAGE');
+						});
+					});
+
+					topics.publish([
+						'/test/extra/extreme',
+						'/test/extra/extra-extreme'
+					], 'TEST MESSAGE');
+					assert.isTrue(!!called, 'Subscription not fired.');
+					assert.equal(called, 5, 'Subscriptions did not fire up tree.');
+				});
+
+				it('Subscribed callbacks should fire in deepest first order when firing up tree.', ()=>{
+					const topics = new PubSub();
+					let called = 0;
+
+					topics.subscribe('/', ()=>{
+						assert.equal(called, 3);
+						called++;
+					});
+					topics.subscribe('/test/extra/extreme', ()=>{
+						assert.equal(called, 0);
+						called++;
+					});
+					topics.subscribe('/test', ()=>{
+						assert.equal(called, 2);
+						called++;
+					});
+					topics.subscribe('/test/extra', ()=>{
+						assert.equal(called, 1);
+						called++;
+					});
+
+					topics.publish('/test/extra/extreme', 'TEST MESSAGE');
+				});
+
 				it('Subscribed callbacks should fire on RegExp channel matchers.', ()=>{
+					const topics = new PubSub();
 					let called = 0;
 					topics.subscribe(/test\/(?:extra|more)\//, message=>{
 						called++;

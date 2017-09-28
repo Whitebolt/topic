@@ -27,12 +27,29 @@ function _allChannelsAreCorrectType(channels, allowRegExp=true) {
 	).length === channels.length);
 }
 
+function* allAncestorChannels(channels) {
+	const loppers = channels.map(channel=>lopGen(channel)());
+
+	while (true) {
+		let done = 0;
+		for(let n=0; n<loppers.length; n++) {
+			let value = loppers[n].next();
+			if (!value.done) {
+				yield value.value;
+			} else {
+				done++;
+			}
+		}
+		if (done >= loppers.length) break;
+	}
+}
+
 function _uniqueChannels(channels) {
 	const uniqueChannels = new Set();
-	channels.forEach(channel=>{
-		const lopper = lopGen(channel);
-		for(let channel of lopper()) uniqueChannels.add(channel);
-	});
+
+	const lopper = allAncestorChannels(channels);
+	for(let channel of lopper) uniqueChannels.add(channel);
+
 	return Array.from(uniqueChannels);
 }
 
@@ -61,11 +78,18 @@ function _publish(subscriptions, channels, message) {
 		.forEach((callbacks, subscriptionChannel)=>{
 			channels.filter(channel=>{
 				if (isRegExp(subscriptionChannel)) return subscriptionChannel.test(channel);
-				return (subscriptionChannel === channel)
 			}).forEach(()=>{
 				callbacks.forEach(callback=>_callbacks.add(callback.callback))
 			});
 		});
+
+	channels.forEach(channel=>{
+		if (subscriptions.has(channel)) {
+			subscriptions.get(channel).forEach(subscription=>{
+				_callbacks.add(subscription.callback);
+			});
+		}
+	});
 
 	_callbacks.forEach(callback=>callback(
 		new Event(message, Object.freeze(channels))
