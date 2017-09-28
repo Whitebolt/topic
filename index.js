@@ -47,21 +47,21 @@ function _subscribe(subscriptions, channels, filter, callback) {
 }
 
 function _publish(subscriptions, channels, message) {
-	const callbacks = new Set();
+	const _callbacks = new Set();
 
 	subscriptions
-		.forEach((subscription, subscriptionChannel)=>{
+		.forEach((callbacks, subscriptionChannel)=>{
 			channels.filter(channel=>{
 				if (isRegExp(subscriptionChannel))  return subscriptionChannel.test(channel);
 				return (subscriptionChannel === channel)
-			}).forEach(subscription=>{
-				callbacks.add(subscription.callback);
+			}).forEach(channel=>{
+				callbacks.forEach(callback=>_callbacks.add(callback.callback))
 			});
 		});
 
-	callbacks.forEach(callback=>callback(message));
+	_callbacks.forEach(callback=>callback(message));
 
-	return !!callbacks.size;
+	return !!_callbacks.size;
 }
 
 

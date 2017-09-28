@@ -35,28 +35,91 @@ describe(describeItem(packageInfo), ()=>{
 			const topics = new PubSub();
 
 			it('The subscribe method should return a function.', ()=>{
-				assert.isFunction(topics.subscribe("/my-test-channel", ()=>{}));
+				assert.isFunction(topics.subscribe('/my-test-channel', ()=>{}));
 			});
 
 			describe('Subscribe should throw if wrong types supplied', ()=>{
 				it('The subscribe method should throw if one or more channels not a string.', ()=>{
 					assert.throws(()=>topics.subscribe(null, ()=>{}), TypeError);
 					assert.throws(()=>topics.subscribe(true, ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe(["/test", null], ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe(new Set(["/test", "/test2", {}]), ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe("test", ()=>{}), TypeError);
-					assert.doesNotThrow(()=>topics.subscribe("/test", ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(['/test', null], ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(new Set(['/test', '/test2', {}]), ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe('test', ()=>{}), TypeError);
+					assert.doesNotThrow(()=>topics.subscribe('/test', ()=>{}), TypeError);
 				});
 
 				it('The subscribe method should throw if callback is not a function.', ()=>{
-					assert.throws(()=>topics.subscribe("/my-test-channel", null), TypeError);
-					assert.throws(()=>topics.subscribe("/my-test-channel", {}), TypeError);
+					assert.throws(()=>topics.subscribe('/test', null), TypeError);
+					assert.throws(()=>topics.subscribe('/test', {}), TypeError);
 				});
 
 				it('The subscribe method should throw if filter is not an object.', ()=>{
-					assert.throws(()=>topics.subscribe("/my-test-channel", null, ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe("/my-test-channel", "filter me", ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe('/test', null, ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe('/test', "filter me", ()=>{}), TypeError);
 				});
+			});
+
+			it('Subscribe should return a useable unsubscribe function.', ()=>{
+				const topics = new PubSub();
+
+				let called = false;
+				const unsubscribe = topics.subscribe('/test', ()=>{
+					called = true;
+				});
+				unsubscribe();
+
+				topics.publish('/test', "TEST MESSAGE");
+				assert.isFalse(called, "Subscription not fired.");
+			});
+
+			it('Subscribe should subscribe to multiple channels when given arrays.', ()=> {
+				const topics = new PubSub();
+
+				let called = 0;
+				topics.subscribe(['/test', '/extra', '/more'], ()=>{
+					called++;
+				});
+
+				topics.publish('/test', "TEST MESSAGE");
+				assert.isTrue(!!called, "Subscription not fired.");
+				assert.equal(called, 1);
+				topics.publish('/more', "TEST MESSAGE");
+				topics.publish('/extra', "TEST MESSAGE");
+				assert.equal(called, 3);
+			});
+
+			it('Subscribe should subscribe to multiple channels when given sets.', ()=> {
+				const topics = new PubSub();
+
+				let called = 0;
+				topics.subscribe(new Set(['/test', '/extra', '/more']), ()=>{
+					called++;
+				});
+
+				topics.publish('/test', "TEST MESSAGE");
+				assert.isTrue(!!called, "Subscription not fired.");
+				assert.equal(called, 1);
+				topics.publish('/more', "TEST MESSAGE");
+				topics.publish('/extra', "TEST MESSAGE");
+				assert.equal(called, 3);
+			});
+
+			it('Subscribe should subscribe to multiple channels when given an array/set of mixed strings and regular expressions - these should fire up the tree. Each callback should fire once.', ()=> {
+				const topics = new PubSub();
+
+				let called = 0;
+				topics.subscribe(new Set(['/test', /test\/(?:extra|more)\//]), ()=>{
+					called++;
+				});
+
+				topics.publish('/test', "TEST MESSAGE");
+				assert.isTrue(!!called, "Subscription not fired.");
+				assert.equal(called, 1);
+				topics.publish('/test/more/extreme', "TEST MESSAGE");
+				topics.publish('/test/extra/extreme', "TEST MESSAGE");
+				assert.equal(called, 3);
+				topics.publish('/test/extreme', "TEST MESSAGE");
+				assert.equal(called, 4);
 			});
 		});
 
@@ -67,14 +130,59 @@ describe(describeItem(packageInfo), ()=>{
 				assert.isBoolean(topics.publish("/my-test-channel", {}));
 			});
 
-			describe('Publish should throw if wrong types supplied', ()=>{
+			describe('Publish should throw if wrong types supplied.', ()=>{
 				it('The publish method should throw if one or more channels not a string.', ()=>{
 					assert.throws(()=>topics.publish(null, {}), TypeError);
 					assert.throws(()=>topics.publish(true, {}), TypeError);
-					assert.throws(()=>topics.publish(["/test", null], {}), TypeError);
-					assert.throws(()=>topics.publish(new Set(["/test", "/test2", {}]), {}), TypeError);
-					assert.throws(()=>topics.publish("test", {}), TypeError);
-					assert.doesNotThrow(()=>topics.publish("/test", {}), TypeError);
+					assert.throws(()=>topics.publish(['/test', null], {}), TypeError);
+					assert.throws(()=>topics.publish(new Set(['/test', '/test2', {}]), {}), TypeError);
+					assert.throws(()=>topics.publish('test', {}), TypeError);
+					assert.doesNotThrow(()=>topics.publish('/test', {}), TypeError);
+				});
+			});
+
+			describe('Published messages should be sent to subscribers on same or matching channels.', ()=>{
+				const topics = new PubSub();
+
+				it('Subscribed callbacks should fire when message sent on same channel.', ()=>{
+					let called = false;
+					topics.subscribe('/test', message=>{
+						called = true;
+						assert.equal(message, "TEST MESSAGE");
+					});
+
+					topics.publish('/test', "TEST MESSAGE");
+					assert.isTrue(called, "Subscription not fired.");
+				});
+
+				it('Subscribed callbacks should fire up channel tree.', ()=>{
+					let called = 0;
+
+					['/test/extra/extreme', '/test/extra', '/test', '/'].forEach(channel=>{
+						topics.subscribe(channel, message=>{
+							called++;
+							assert.equal(message, "TEST MESSAGE");
+						});
+					});
+
+					topics.publish('/test/extra/extreme', "TEST MESSAGE");
+					assert.isTrue(!!called, "Subscription not fired.");
+					assert.equal(called, 4, "Subscriptions did not fire up tree.");
+				});
+
+				it('Subscribed callbacks should fire on RegExp channel matchers.', ()=>{
+					let called = 0;
+					topics.subscribe(/test\/(?:extra|more)\//, message=>{
+						called++;
+						assert.equal(message, "TEST MESSAGE");
+					});
+
+					topics.publish('/test/extra/extreme', "TEST MESSAGE");
+					topics.publish('/test/more/extreme', "TEST MESSAGE");
+					topics.publish('/test/zero/extreme', "TEST MESSAGE");
+					topics.publish('/test/more', "TEST MESSAGE");
+					assert.isTrue(!!called, "Subscription not fired.");
+					assert.equal(called, 2, "Subscriptions did not fire on RegExp matches.");
 				});
 			});
 		});
