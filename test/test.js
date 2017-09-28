@@ -55,7 +55,7 @@ describe(describeItem(packageInfo), ()=>{
 
 				it('The subscribe method should throw if filter is not an object.', ()=>{
 					assert.throws(()=>topics.subscribe('/test', null, ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe('/test', "filter me", ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe('/test', 'filter me', ()=>{}), TypeError);
 				});
 			});
 
@@ -68,8 +68,8 @@ describe(describeItem(packageInfo), ()=>{
 				});
 				unsubscribe();
 
-				topics.publish('/test', "TEST MESSAGE");
-				assert.isFalse(called, "Subscription not fired.");
+				topics.publish('/test', 'TEST MESSAGE');
+				assert.isFalse(called, 'Subscription not fired.');
 			});
 
 			it('Subscribe should subscribe to multiple channels when given arrays.', ()=> {
@@ -80,11 +80,11 @@ describe(describeItem(packageInfo), ()=>{
 					called++;
 				});
 
-				topics.publish('/test', "TEST MESSAGE");
-				assert.isTrue(!!called, "Subscription not fired.");
+				topics.publish('/test', 'TEST MESSAGE');
+				assert.isTrue(!!called, 'Subscription not fired.');
 				assert.equal(called, 1);
-				topics.publish('/more', "TEST MESSAGE");
-				topics.publish('/extra', "TEST MESSAGE");
+				topics.publish('/more', 'TEST MESSAGE');
+				topics.publish('/extra', 'TEST MESSAGE');
 				assert.equal(called, 3);
 			});
 
@@ -112,13 +112,13 @@ describe(describeItem(packageInfo), ()=>{
 					called++;
 				});
 
-				topics.publish('/test', "TEST MESSAGE");
-				assert.isTrue(!!called, "Subscription not fired.");
+				topics.publish('/test', 'TEST MESSAGE');
+				assert.isTrue(!!called, 'Subscription not fired.');
 				assert.equal(called, 1);
-				topics.publish('/test/more/extreme', "TEST MESSAGE");
-				topics.publish('/test/extra/extreme', "TEST MESSAGE");
+				topics.publish('/test/more/extreme', 'TEST MESSAGE');
+				topics.publish('/test/extra/extreme', 'TEST MESSAGE');
 				assert.equal(called, 3);
-				topics.publish('/test/extreme', "TEST MESSAGE");
+				topics.publish('/test/extreme', 'TEST MESSAGE');
 				assert.equal(called, 4);
 			});
 		});
@@ -127,7 +127,7 @@ describe(describeItem(packageInfo), ()=>{
 			const topics = new PubSub();
 
 			it('The publish method should return a boolean.', ()=>{
-				assert.isBoolean(topics.publish("/my-test-channel", {}));
+				assert.isBoolean(topics.publish('/my-test-channel', {}));
 			});
 
 			describe('Publish should throw if wrong types supplied.', ()=>{
@@ -150,11 +150,11 @@ describe(describeItem(packageInfo), ()=>{
 					let called = false;
 					topics.subscribe('/test', message=>{
 						called = true;
-						assert.equal(message, "TEST MESSAGE");
+						assert.equal(message.data, 'TEST MESSAGE');
 					});
 
-					topics.publish('/test', "TEST MESSAGE");
-					assert.isTrue(called, "Subscription not fired.");
+					topics.publish('/test', 'TEST MESSAGE');
+					assert.isTrue(called, 'Subscription not fired.');
 				});
 
 				it('Subscribed callbacks should fire up channel tree.', ()=>{
@@ -163,28 +163,28 @@ describe(describeItem(packageInfo), ()=>{
 					['/test/extra/extreme', '/test/extra', '/test', '/'].forEach(channel=>{
 						topics.subscribe(channel, message=>{
 							called++;
-							assert.equal(message, "TEST MESSAGE");
+							assert.equal(message.data, 'TEST MESSAGE');
 						});
 					});
 
-					topics.publish('/test/extra/extreme', "TEST MESSAGE");
-					assert.isTrue(!!called, "Subscription not fired.");
-					assert.equal(called, 4, "Subscriptions did not fire up tree.");
+					topics.publish('/test/extra/extreme', 'TEST MESSAGE');
+					assert.isTrue(!!called, 'Subscription not fired.');
+					assert.equal(called, 4, 'Subscriptions did not fire up tree.');
 				});
 
 				it('Subscribed callbacks should fire on RegExp channel matchers.', ()=>{
 					let called = 0;
 					topics.subscribe(/test\/(?:extra|more)\//, message=>{
 						called++;
-						assert.equal(message, "TEST MESSAGE");
+						assert.equal(message.data, 'TEST MESSAGE');
 					});
 
-					topics.publish('/test/extra/extreme', "TEST MESSAGE");
-					topics.publish('/test/more/extreme', "TEST MESSAGE");
-					topics.publish('/test/zero/extreme', "TEST MESSAGE");
-					topics.publish('/test/more', "TEST MESSAGE");
-					assert.isTrue(!!called, "Subscription not fired.");
-					assert.equal(called, 2, "Subscriptions did not fire on RegExp matches.");
+					topics.publish('/test/extra/extreme', 'TEST MESSAGE');
+					topics.publish('/test/more/extreme', 'TEST MESSAGE');
+					topics.publish('/test/zero/extreme', 'TEST MESSAGE');
+					topics.publish('/test/more', 'TEST MESSAGE');
+					assert.isTrue(!!called, 'Subscription not fired.');
+					assert.equal(called, 2, 'Subscriptions did not fire on RegExp matches.');
 				});
 			});
 
@@ -193,8 +193,8 @@ describe(describeItem(packageInfo), ()=>{
 
 				topics.subscribe('/test', message=>{});
 
-				assert.isTrue(topics.publish('/test', "TEST MESSAGE"));
-				assert.isFalse(topics.publish('/extra', "TEST MESSAGE"));
+				assert.isTrue(topics.publish('/test', 'TEST MESSAGE'));
+				assert.isFalse(topics.publish('/extra', 'TEST MESSAGE'));
 			});
 		});
 
@@ -225,26 +225,26 @@ describe(describeItem(packageInfo), ()=>{
 					let called = false;
 					topics.subscribe('/test/extra/extreme', message=>{
 						called = true;
-						assert.equal(message, "TEST MESSAGE");
+						assert.equal(message.data, 'TEST MESSAGE');
 					});
 
-					topics.broadcast('/test/extra/extreme', "TEST MESSAGE");
-					assert.isTrue(called, "Subscription not fired.");
+					topics.broadcast('/test/extra/extreme', 'TEST MESSAGE');
+					assert.isTrue(called, 'Subscription not fired.');
 				});
 
 				it('Subscribed callbacks should fire when message broadcast on ancestor channel.', ()=>{
 					let called = 0;
 					topics.subscribe('/test/extra/extreme', message=>{
 						called++;
-						assert.equal(message, "TEST MESSAGE");
+						assert.equal(message.data, 'TEST MESSAGE');
 					});
 					topics.subscribe(['/test/extra/more', '/test/more/extra'], message=>{
 						called++;
-						assert.equal(message, "TEST MESSAGE");
+						assert.equal(message.data, 'TEST MESSAGE');
 					});
 
-					topics.broadcast('/test', "TEST MESSAGE");
-					assert.isTrue(!!called, "Subscription not fired.");
+					topics.broadcast('/test', 'TEST MESSAGE');
+					assert.isTrue(!!called, 'Subscription not fired.');
 					assert.equal(called, 2);
 				});
 
@@ -253,10 +253,10 @@ describe(describeItem(packageInfo), ()=>{
 
 					topics.subscribe('/test/extra/extreme', ()=>{});
 
-					assert.isTrue(topics.broadcast('/test', "TEST MESSAGE"));
-					assert.isTrue(topics.broadcast('/test/extra', "TEST MESSAGE"));
-					assert.isFalse(topics.broadcast('/extra', "TEST MESSAGE"));
-					assert.isTrue(topics.broadcast('/', "TEST MESSAGE"));
+					assert.isTrue(topics.broadcast('/test', 'TEST MESSAGE'));
+					assert.isTrue(topics.broadcast('/test/extra', 'TEST MESSAGE'));
+					assert.isFalse(topics.broadcast('/extra', 'TEST MESSAGE'));
+					assert.isTrue(topics.broadcast('/', 'TEST MESSAGE'));
 				});
 			});
 		});

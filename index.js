@@ -67,7 +67,9 @@ function _publish(subscriptions, channels, message) {
 			});
 		});
 
-	_callbacks.forEach(callback=>callback(message));
+	_callbacks.forEach(callback=>callback(
+		new Event(message, Object.freeze(channels))
+	));
 
 	return !!_callbacks.size;
 }
@@ -85,9 +87,26 @@ function _broadcast(subscriptions, channels, message) {
 			});
 		});
 
-	_callbacks.forEach(callback=>callback(message));
+	_callbacks.forEach(callback=>callback(
+		new Event(message, Object.freeze(channels))
+	));
 
 	return !!_callbacks.size;
+}
+
+class Event {
+	constructor(message, target) {
+		Private.set(this, 'data', message);
+		Private.set(this, 'target', target);
+	}
+
+	get data() {
+		return Private.get(this, 'data');
+	}
+
+	get target() {
+		return Private.get(this, 'target');
+	}
 }
 
 
