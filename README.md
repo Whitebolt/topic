@@ -3,25 +3,25 @@ Publish and subscription module with broadcast and message filtering.
 
 ## Install
 
-```
+```bash
 npm install topic-subscribe
 ```
 
 or
 
-```
+```bash
 yarn install topic-subscribe
 ```
 
 **To save to your** *package.json*
 
-```
+```bash
 npm install --save topic-subscribe
 ```
 
 ## Basic use
 
-```
+```javascript
 const PubSub = require('topic-subscribe');
 const pubsub = new PubSub();
 
@@ -46,7 +46,7 @@ This shows basic use.  A channel subscription is set and we filter the results t
 
 To subscribe to a channel, simply provide the channel and a callback.
 
-```
+```javascript
 pubsub.subscribe('/my-channel/my-subchannel', evt=>{
     // Respond to message
 });
@@ -54,7 +54,7 @@ pubsub.subscribe('/my-channel/my-subchannel', evt=>{
 
 This is the most basic and simple subscription.  A filter object can be supplied to filter out unwanted messages. This allows the callback to be limited to the specific instance we need.  A good use for this might be a server error channel.  If errors had severity levels we might only be interested in the most severe errors.
 
-```
+```javascript
 const ERRORLEVELS = {
     critical: 1,
     severe: 2,
@@ -74,7 +74,7 @@ The filtering uses the [sift](https://www.npmjs.com/package/sift) module.  Sift 
 
 You can also subscribe to more than one channel at a time:
 
-```
+```javascript
 pubsub.subscribe([
     '/my-channel/my-subchannel',
     '/some-other-channel/another-subchannel'
@@ -107,7 +107,7 @@ If you subscribe to **/** you will receive all messages publidhed.
 
 Publishing is really simple:
 
-```
+```javascript
 pubsub.publish('/interesting-messages', "My message"); 
 ```
 
@@ -126,6 +126,6 @@ You can also broadcast, which is the opposite to publishing in terms of bubbling
 
 **Note:** Regular expression subscriptions will not fire for broadcast messages.
 
-```
+```javascript
 pubsub.broadcast('/', "My message to everyone!"); 
 ```
