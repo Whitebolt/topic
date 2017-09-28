@@ -12,14 +12,10 @@ const Private = isNode?require("./lib/Private"):window.topic.Private;
 const Map = isNode?require("./lib/Map"):window.topic.Map;
 const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
 const createError = isNode?require("./lib/errors"):window.topic.createError;
-const globToRegExp = require("glob2regexp");
-const cache = new Map();
 
 function _subscriptionAction(subscriptions, channel, action, subscription) {
-	const _channel = channel.source;
-	cache.set(_channel, channel);
-	if (!subscriptions.has(_channel)) subscriptions.set(_channel, new Set());
-	subscriptions.get(_channel)[action](subscription);
+	if (!subscriptions.has(channel)) subscriptions.set(channel, new Set());
+	subscriptions.get(channel)[action](subscription);
 }
 
 function _subscriptionsAction(subscriptions, channels, action, subscription) {
@@ -28,10 +24,6 @@ function _subscriptionsAction(subscriptions, channels, action, subscription) {
 
 function allChannelsAreCorrectType(channels) {
 	return !(channels.filter(channel=>(!isString(channel) && !isRegExp(channel))).length);
-}
-
-function getRegExpChannels(channels) {
-	return channels.map(channel=>(isRegExp(channel)?channel:globToRegExp(channel)));
 }
 
 function uniqueChannels(channels) {
@@ -48,9 +40,9 @@ function _subscribe(subscriptions, channels, filter, callback) {
 	if (!isObject(filter)) throw createError(TypeError, 'FilterNotAnObject');
 	if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
 
-	const [subscription, regExpChannels] = [{callback, filter}, getRegExpChannels(channels)];
-	_subscriptionsAction(subscriptions, regExpChannels, 'add', subscription);
-	return ()=>_subscriptionsAction(subscriptions, regExpChannels, 'delete', subscription);
+	const subscription = {callback, filter};
+	_subscriptionsAction(subscriptions, channels, 'add', subscription);
+	return ()=>_subscriptionsAction(subscriptions, channels, 'delete', subscription);
 }
 
 function _publish(subscriptions, channels, message) {
@@ -109,7 +101,6 @@ class PubSub {
 	publish(channel, message) {
 		const channels = makeArray(channel);
 		if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
-
 		return _publish(
 			Private.get(this, 'channels', Map),
 			uniqueChannels(channels),

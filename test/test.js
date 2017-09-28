@@ -38,21 +38,23 @@ describe(describeItem(packageInfo), ()=>{
 				assert.isFunction(topics.subscribe("/my-test-channel", ()=>{}));
 			});
 
-			it('The subscribe method should throw if one or more channels not a string.', ()=>{
-				assert.throws(()=>topics.subscribe(null, ()=>{}), TypeError);
-				assert.throws(()=>topics.subscribe(true, ()=>{}), TypeError);
-				assert.throws(()=>topics.subscribe(["test", null], ()=>{}), TypeError);
-				assert.throws(()=>topics.subscribe(new Set(["test", "test2", {}]), ()=>{}), TypeError);
-			});
+			describe('Subscribe should throw if wrong types supplied', ()=>{
+				it('The subscribe method should throw if one or more channels not a string.', ()=>{
+					assert.throws(()=>topics.subscribe(null, ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(true, ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(["test", null], ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(new Set(["test", "test2", {}]), ()=>{}), TypeError);
+				});
 
-			it('The subscribe method should throw if callback is not a function.', ()=>{
-				assert.throws(()=>topics.subscribe("/my-test-channel", null), TypeError);
-				assert.throws(()=>topics.subscribe("/my-test-channel", {}), TypeError);
-			});
+				it('The subscribe method should throw if callback is not a function.', ()=>{
+					assert.throws(()=>topics.subscribe("/my-test-channel", null), TypeError);
+					assert.throws(()=>topics.subscribe("/my-test-channel", {}), TypeError);
+				});
 
-			it('The subscribe method should throw if filter is not an object.', ()=>{
-				assert.throws(()=>topics.subscribe("/my-test-channel", null, ()=>{}), TypeError);
-				assert.throws(()=>topics.subscribe("/my-test-channel", "filter me", ()=>{}), TypeError);
+				it('The subscribe method should throw if filter is not an object.', ()=>{
+					assert.throws(()=>topics.subscribe("/my-test-channel", null, ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe("/my-test-channel", "filter me", ()=>{}), TypeError);
+				});
 			});
 		});
 
@@ -61,6 +63,15 @@ describe(describeItem(packageInfo), ()=>{
 
 			it('The publish method should return a boolean.', ()=>{
 				assert.isBoolean(topics.publish("/my-test-channel", {}));
+			});
+
+			describe('Publish should throw if wrong types supplied', ()=>{
+				it('The publish method should throw if one or more channels not a string.', ()=>{
+					assert.throws(()=>topics.publish(null, {}), TypeError);
+					assert.throws(()=>topics.publish(true, {}), TypeError);
+					assert.throws(()=>topics.publish(["test", null], {}), TypeError);
+					assert.throws(()=>topics.publish(new Set(["test", "test2", {}]), {}), TypeError);
+				});
 			});
 		});
 	});

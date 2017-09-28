@@ -249,10 +249,6 @@ fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
 
-glob2regexp@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/glob2regexp/-/glob2regexp-1.0.0.tgz#9cf53661e806376b072c9a86a96c26d25df482a2"
-
 glob@3.2.11:
   version "3.2.11"
   resolved "https://registry.yarnpkg.com/glob/-/glob-3.2.11.tgz#4a973f635b9190f715d10987d5c00fd2815ebe3d"
