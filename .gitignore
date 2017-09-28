@@ -36,6 +36,8 @@ jspm_packages
 # Optional REPL history
 .node_repl_history
 
-
+#IDEs
 .idea/
-node_modules/
+
+#project
+test/index.json
