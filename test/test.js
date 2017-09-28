@@ -33,6 +33,7 @@ describe(describeItem(packageInfo), ()=>{
 	describe(describeItem(jsDoc, 'PubSub'), ()=>{
 		describe(describeItem(jsDoc, 'PubSub#subscribe'), ()=>{
 			const topics = new PubSub();
+
 			it('The subscribe method should return a function.', ()=>{
 				assert.isFunction(topics.subscribe("/my-test-channel", ()=>{}));
 			});
@@ -56,9 +57,11 @@ describe(describeItem(packageInfo), ()=>{
 		});
 
 		describe(describeItem(jsDoc, 'PubSub#publish'), ()=>{
-		});
+			const topics = new PubSub();
 
-		describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=>{
+			it('The publish method should return a boolean.', ()=>{
+				assert.isBoolean(topics.publish("/my-test-channel", {}));
+			});
 		});
 	});
 });

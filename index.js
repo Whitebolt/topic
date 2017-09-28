@@ -9,28 +9,60 @@ const isNode = (()=>{
 })();
 
 const Private = isNode?require("./lib/Private"):window.topic.Private;
-const {makeArray, isString, isFunction, isObject} = isNode?require("./lib/util"):window.topic;
+const Map = isNode?require("./lib/Map"):window.topic.Map;
+const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
+const globToRegExp = require("glob2regexp");
+const cache = new Map();
 
 function _channelAction(channels, channel, action, subscription) {
-	if (!channels.has(channel)) channels.set(channel, new Set());
-	channels.get(channel)[action](subscription);
+	const _channel = channel.source;
+	cache.set(_channel, channel);
+	if (!channels.has(_channel)) channels.set(_channel, new Set());
+	channels.get(_channel)[action](subscription);
+}
+
+function _channelsAction(channels, channel, action, subscription) {
+	channel.forEach(channel=>_channelAction(channels, channel, action, subscription));
 }
 
 function _subscribe(channels, channel, filter, callback) {
 	if (!isFunction(callback)) throw new TypeError(`Expected subscription callback to be a function.`);
 	if (!isObject(filter)) throw new TypeError(`Expected subscription filter to be an object.`);
+	if (channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
 
-	const subscription = {callback, filter};
+	const [subscription, regExpChannels] = [{callback, filter}, getRegExpChannels(channel)];
+	_channelsAction(channels, regExpChannels, 'add', subscription);
+	return ()=>_channelsAction(channels, regExpChannels, 'delete', subscription);
+}
 
-	channel.forEach(channel=>{
-		console.log(channel);
-		if (!isString(channel)) throw new TypeError(`Expected subscription channel to be a string.`);
-		_channelAction(channels, channel, 'add', subscription)
+function getRegExpChannels(channels) {
+	return channels.map(channel=>(isRegExp(channel)?channel:globToRegExp(channel)));
+}
+
+function _publish(channels, channel, message) {
+	if (channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
+
+	const callbacks = new Set();
+
+	channels
+		.map((callbacks, channelSource)=>[cache.get(channelSource).test(channel), callbacks])
+		.filter(item=>item)
+		.forEach((subscriptions, channel)=>{
+			callbacks.add(subscriptions.callback)
+		});
+
+	callbacks.forEach(callback=>callback(message));
+
+	return !!callbacks.size;
+}
+
+function uniqueChannels(channels) {
+	const uniqueChannels = new Set();
+	channels.forEach(channel=>{
+		const lopper = lopGen(channel);
+		for(let channel of lopper()) uniqueChannels.add(channel);
 	});
-
-	return ()=>{
-		channel.forEach(channel=>_channelAction(channels, channel, 'delete', subscription));
-	};
+	return Array.from(uniqueChannels);
 }
 
 
@@ -72,20 +104,14 @@ class PubSub {
 	 * @returns {boolean}						Did the message publish?
 	 */
 	publish(channel, message) {
+		const _channel = makeArray(channel);
+		if (_channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
 
-	}
-
-	/**
-	 * Broadcast a message to the given channel(s). Broadcasting causes a message to be read on a given channel and all
-	 * child and descendant channels.
-	 *
-	 * @public
-	 * @param {string|Array|set} channel		Channel(s) to publish on (including glob-style patterns).
-	 * @param {*} message						Message to publish.
-	 * @returns {boolean}						Did the message publish?
-	 */
-	broadcast() {
-
+		return _publish(
+			Private.get(this, 'channels', Map),
+			uniqueChannels(_channel),
+			message
+		);
 	}
 }
 

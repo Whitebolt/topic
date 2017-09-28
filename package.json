@@ -37,7 +37,9 @@
     "url": "https://github.com/whitebolt/topic-subscribe/issues"
   },
   "homepage": "https://github.com/whitebolt/topic-subscribe#readme",
-  "dependencies": {},
+  "dependencies": {
+    "glob2regexp": "^1.0.0"
+  },
   "devDependencies": {
     "chai": "^3.3.0",
     "jsdoc-parse": "^1.1.0",
