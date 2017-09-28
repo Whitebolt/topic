@@ -9,7 +9,7 @@ const isNode = (()=>{
 })();
 
 const Private = isNode?require("./lib/Private"):window.topic.Private;
-const {makeArray} = isNode?require("./lib/util"):window.topic;
+const {makeArray, isString, isFunction, isObject} = isNode?require("./lib/util"):window.topic;
 
 function _channelAction(channels, channel, action, subscription) {
 	if (!channels.has(channel)) channels.set(channel, new Set());
@@ -17,9 +17,16 @@ function _channelAction(channels, channel, action, subscription) {
 }
 
 function _subscribe(channels, channel, filter, callback) {
+	if (!isFunction(callback)) throw new TypeError(`Expected subscription callback to be a function.`);
+	if (!isObject(filter)) throw new TypeError(`Expected subscription filter to be an object.`);
+
 	const subscription = {callback, filter};
 
-	channel.forEach(channel=>_channelAction(channels, channel, 'add', subscription));
+	channel.forEach(channel=>{
+		console.log(channel);
+		if (!isString(channel)) throw new TypeError(`Expected subscription channel to be a string.`);
+		_channelAction(channels, channel, 'add', subscription)
+	});
 
 	return ()=>{
 		channel.forEach(channel=>_channelAction(channels, channel, 'delete', subscription));
