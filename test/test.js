@@ -238,6 +238,33 @@ describe(describeItem(packageInfo), ()=>{
 				});
 			});
 
+
+			it('Filters should be applied when given, according to the sift rules.', ()=>{
+				const topics = new PubSub();
+				let called = 0;
+
+				topics.subscribe('/test', {priority:{$gt:2}}, message=>{
+					called++;
+				});
+
+				topics.publish('/test/extra/extreme', {
+					priority: 4,
+					description: "Message at level 4"
+				});
+
+				topics.publish('/test/extra/extreme', {
+					priority: 3,
+					description: "Message at level 3"
+				});
+
+				topics.publish('/test/extra/extreme', {
+					priority: 1,
+					description: "Message at level 1"
+				});
+
+				assert.equal(called, 2, 'Filter did not run correctly.');
+			});
+
 			it('Publish should return whether a callback was fired.', ()=>{
 				const topics = new PubSub();
 
@@ -308,6 +335,23 @@ describe(describeItem(packageInfo), ()=>{
 					assert.isFalse(topics.broadcast('/extra', 'TEST MESSAGE'));
 					assert.isTrue(topics.broadcast('/', 'TEST MESSAGE'));
 				});
+			});
+
+			it('Subscribed callbacks should fire when message broadcast on ancestor channel and filter matches.', ()=>{
+				const topics = new PubSub();
+				let called = 0;
+				topics.subscribe('/test/extra/extreme', {priority: {$lt: 3}}, ()=>{
+					called++;
+				});
+				topics.subscribe(['/test/extra/more', '/test/more/extra'], {priority: {$gt: 1}}, ()=>{
+					called++;
+				});
+
+				topics.broadcast('/test', {
+					priority: 1,
+					description: 'Message priority 1'
+				});
+				assert.equal(called, 1);
 			});
 		});
 	});

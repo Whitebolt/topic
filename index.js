@@ -8,6 +8,7 @@ const isNode = (()=>{
 	}
 })();
 
+const sift = require('sift');
 const Private = isNode?require("./lib/Private"):window.topic.Private;
 const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
 const createError = isNode?require("./lib/errors"):window.topic.createError;
@@ -79,14 +80,16 @@ function _publish(subscriptions, channels, message) {
 			channels.filter(channel=>{
 				if (isRegExp(subscriptionChannel)) return subscriptionChannel.test(channel);
 			}).forEach(()=>{
-				callbacks.forEach(callback=>_callbacks.add(callback.callback))
+				callbacks.forEach(callback=>{
+					if (sift(callback.filter, [message]).length) _callbacks.add(callback.callback);
+				})
 			});
 		});
 
 	channels.forEach(channel=>{
 		if (subscriptions.has(channel)) {
 			subscriptions.get(channel).forEach(subscription=>{
-				_callbacks.add(subscription.callback);
+				if (sift(subscription.filter, [message]).length) _callbacks.add(subscription.callback);
 			});
 		}
 	});
@@ -107,7 +110,9 @@ function _broadcast(subscriptions, channels, message) {
 				if (isRegExp(subscriptionChannel)) return false;
 				return (subscriptionChannel.substr(0, channel.length) === channel)
 			}).forEach(()=>{
-				callbacks.forEach(callback=>_callbacks.add(callback.callback))
+				callbacks.forEach(callback=>{
+					if (sift(callback.filter, [message]).length) _callbacks.add(callback.callback);
+				})
 			});
 		});
 

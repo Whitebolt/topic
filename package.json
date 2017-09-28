@@ -1,6 +1,6 @@
 {
   "name": "topic-subscribe",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
   "scripts": {
@@ -38,13 +38,12 @@
   },
   "homepage": "https://github.com/whitebolt/topic-subscribe#readme",
   "dependencies": {
+    "sift": "^5.0.0"
   },
   "devDependencies": {
     "chai": "^3.3.0",
     "jsdoc-parse": "^1.1.0",
     "mocha": "^2.3.3"
   },
-  "errors": {
-
-  }
+  "errors": {}
 }
