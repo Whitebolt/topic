@@ -21,13 +21,13 @@ function _subscriptionsAction(subscriptions, channels, action, subscription) {
 	channels.forEach(channel=>_subscriptionAction(subscriptions, channel, action, subscription));
 }
 
-function allChannelsAreCorrectType(channels) {
+function _allChannelsAreCorrectType(channels, allowRegExp=true) {
 	return (channels.filter(channel=>
-		(isString(channel) ? (channel.charAt(0) === '/') : isRegExp(channel))
+		(isString(channel) ? (channel.charAt(0) === '/') : (allowRegExp?isRegExp(channel):false))
 	).length === channels.length);
 }
 
-function uniqueChannels(channels) {
+function _uniqueChannels(channels) {
 	const uniqueChannels = new Set();
 	channels.forEach(channel=>{
 		const lopper = lopGen(channel);
@@ -36,10 +36,18 @@ function uniqueChannels(channels) {
 	return Array.from(uniqueChannels);
 }
 
+function _removingTrailingSlash(channel) {
+	return (
+		(isString(channel) && (channel.charAt(0) === '/')) ?
+			'/'+channel.split('/').filter(part=>(part.trim() !== '')).join('/'):
+			channel
+	);
+}
+
 function _subscribe(subscriptions, channels, filter, callback) {
 	if (!isFunction(callback)) throw createError(TypeError, 'CallbackNotFunction');
 	if (!isObject(filter)) throw createError(TypeError, 'FilterNotAnObject');
-	if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
+	if (!_allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
 
 	const subscription = {callback, filter};
 	_subscriptionsAction(subscriptions, channels, 'add', subscription);
@@ -52,9 +60,27 @@ function _publish(subscriptions, channels, message) {
 	subscriptions
 		.forEach((callbacks, subscriptionChannel)=>{
 			channels.filter(channel=>{
-				if (isRegExp(subscriptionChannel))  return subscriptionChannel.test(channel);
+				if (isRegExp(subscriptionChannel)) return subscriptionChannel.test(channel);
 				return (subscriptionChannel === channel)
-			}).forEach(channel=>{
+			}).forEach(()=>{
+				callbacks.forEach(callback=>_callbacks.add(callback.callback))
+			});
+		});
+
+	_callbacks.forEach(callback=>callback(message));
+
+	return !!_callbacks.size;
+}
+
+function _broadcast(subscriptions, channels, message) {
+	const _callbacks = new Set();
+
+	subscriptions
+		.forEach((callbacks, subscriptionChannel)=>{
+			channels.filter(channel=>{
+				if (isRegExp(subscriptionChannel)) return false;
+				return (subscriptionChannel.substr(0, channel.length) === channel)
+			}).forEach(()=>{
 				callbacks.forEach(callback=>_callbacks.add(callback.callback))
 			});
 		});
@@ -76,18 +102,21 @@ class PubSub {
 	}
 
 	/**
-	 * Subscribe to information published on a given channel(s) path with optional filtering.
+	 * Subscribe to information published on a given channel(s) path with optional filtering. If a regular-expression is
+	 * given for a channel it will receive published data but not broadcast data.
 	 *
 	 * @public
-	 * @param {string|Array|Set} channel		Channel(s) to subscribe to (including glob-style patterns).
-	 * @param {Object} [filter]					Filter to filter-out messages that are not wanted.
-	 * @param {Function} callback				Callback for caught messages.
-	 * @returns {Function}						Unsubscribe function.
+	 * @param {string|RegExp|Array.<string|RegExp>|Set.<string|RegExp>} channel		Channel(s) to subscribe to
+	 * 																				(including glob-style patterns).
+	 * @param {Object} [filter]														Filter to filter-out messages that
+	 * 																				are not wanted.
+	 * @param {Function} callback													Callback for caught messages.
+	 * @returns {Function}															Unsubscribe function.
 	 */
 	subscribe(channel, filter, callback) {
 		return _subscribe(
 			Private.get(this, 'channels', Map),
-			makeArray(channel),
+			makeArray(channel).map(channel=>_removingTrailingSlash(channel)),
 			callback?filter:{},
 			callback?callback:filter
 		);
@@ -103,11 +132,30 @@ class PubSub {
 	 * @returns {boolean}						Did the message publish?
 	 */
 	publish(channel, message) {
-		const channels = makeArray(channel);
-		if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
+		const channels = makeArray(channel).map(channel=>_removingTrailingSlash(channel));
+		if (!_allChannelsAreCorrectType(channels, false)) throw createError(TypeError, 'ChannelNotAString');
 		return _publish(
 			Private.get(this, 'channels', Map),
-			uniqueChannels(channels),
+			_uniqueChannels(channels),
+			message
+		);
+	}
+
+	/**
+	 * Broadcast a message to the given channel(s). Broadcasting causes a message to be read on given channel and all
+	 * descendant channels. Will not be read on channel subscriptions that are regular-expressions.
+	 *
+	 * @public
+	 * @param {string|Array|set} channel		Channel(s) to publish on (including glob-style patterns).
+	 * @param {*} message						Message to publish.
+	 * @returns {boolean}						Did the message publish?
+	 */
+	broadcast(channel, message) {
+		const channels = makeArray(channel).map(channel=>_removingTrailingSlash(channel));
+		if (!_allChannelsAreCorrectType(channels, false)) throw createError(TypeError, 'ChannelNotAString');
+		return _broadcast(
+			Private.get(this, 'channels', Map),
+			channels,
 			message
 		);
 	}

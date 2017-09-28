@@ -137,6 +137,8 @@ describe(describeItem(packageInfo), ()=>{
 					assert.throws(()=>topics.publish(['/test', null], {}), TypeError);
 					assert.throws(()=>topics.publish(new Set(['/test', '/test2', {}]), {}), TypeError);
 					assert.throws(()=>topics.publish('test', {}), TypeError);
+					assert.throws(()=>topics.publish(/test/, {}), TypeError);
+					assert.throws(()=>topics.publish(['/test', /test/], {}), TypeError);
 					assert.doesNotThrow(()=>topics.publish('/test', {}), TypeError);
 				});
 			});
@@ -183,6 +185,78 @@ describe(describeItem(packageInfo), ()=>{
 					topics.publish('/test/more', "TEST MESSAGE");
 					assert.isTrue(!!called, "Subscription not fired.");
 					assert.equal(called, 2, "Subscriptions did not fire on RegExp matches.");
+				});
+			});
+
+			it('Publish should return whether a callback was fired.', ()=>{
+				const topics = new PubSub();
+
+				topics.subscribe('/test', message=>{});
+
+				assert.isTrue(topics.publish('/test', "TEST MESSAGE"));
+				assert.isFalse(topics.publish('/extra', "TEST MESSAGE"));
+			});
+		});
+
+		describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=> {
+			const topics = new PubSub();
+
+			it('The broadcast method should return a boolean.', ()=>{
+				assert.isBoolean(topics.publish('/test', {}));
+			});
+
+			describe('Broadcast should throw if wrong types supplied.', ()=>{
+				it('The broadcast method should throw if one or more channels not a string.', ()=>{
+					assert.throws(()=>topics.publish(null, {}), TypeError);
+					assert.throws(()=>topics.publish(true, {}), TypeError);
+					assert.throws(()=>topics.publish(['/test', null], {}), TypeError);
+					assert.throws(()=>topics.publish(new Set(['/test', '/test2', {}]), {}), TypeError);
+					assert.throws(()=>topics.publish('test', {}), TypeError);
+					assert.throws(()=>topics.publish(/test/, {}), TypeError);
+					assert.throws(()=>topics.publish(['/test', /test/], {}), TypeError);
+					assert.doesNotThrow(()=>topics.publish('/test', {}), TypeError);
+				});
+			});
+
+			describe('Broadcast messages should be sent to subscribers on same or matching channels.', ()=> {
+				const topics = new PubSub();
+
+				it('Subscribed callbacks should fire when message broadcast on same channel.', ()=>{
+					let called = false;
+					topics.subscribe('/test/extra/extreme', message=>{
+						called = true;
+						assert.equal(message, "TEST MESSAGE");
+					});
+
+					topics.broadcast('/test/extra/extreme', "TEST MESSAGE");
+					assert.isTrue(called, "Subscription not fired.");
+				});
+
+				it('Subscribed callbacks should fire when message broadcast on ancestor channel.', ()=>{
+					let called = 0;
+					topics.subscribe('/test/extra/extreme', message=>{
+						called++;
+						assert.equal(message, "TEST MESSAGE");
+					});
+					topics.subscribe(['/test/extra/more', '/test/more/extra'], message=>{
+						called++;
+						assert.equal(message, "TEST MESSAGE");
+					});
+
+					topics.broadcast('/test', "TEST MESSAGE");
+					assert.isTrue(!!called, "Subscription not fired.");
+					assert.equal(called, 2);
+				});
+
+				it('Broadcast should return whether a callback was fired.', ()=>{
+					const topics = new PubSub();
+
+					topics.subscribe('/test/extra/extreme', ()=>{});
+
+					assert.isTrue(topics.broadcast('/test', "TEST MESSAGE"));
+					assert.isTrue(topics.broadcast('/test/extra', "TEST MESSAGE"));
+					assert.isFalse(topics.broadcast('/extra', "TEST MESSAGE"));
+					assert.isTrue(topics.broadcast('/', "TEST MESSAGE"));
 				});
 			});
 		});
