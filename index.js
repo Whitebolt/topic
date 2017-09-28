@@ -22,7 +22,9 @@ function _subscriptionsAction(subscriptions, channels, action, subscription) {
 }
 
 function allChannelsAreCorrectType(channels) {
-	return !(channels.filter(channel=>(!isString(channel) && !isRegExp(channel))).length);
+	return (channels.filter(channel=>
+		(isString(channel) ? (channel.charAt(0) === '/') : isRegExp(channel))
+	).length === channels.length);
 }
 
 function uniqueChannels(channels) {

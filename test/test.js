@@ -42,8 +42,10 @@ describe(describeItem(packageInfo), ()=>{
 				it('The subscribe method should throw if one or more channels not a string.', ()=>{
 					assert.throws(()=>topics.subscribe(null, ()=>{}), TypeError);
 					assert.throws(()=>topics.subscribe(true, ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe(["test", null], ()=>{}), TypeError);
-					assert.throws(()=>topics.subscribe(new Set(["test", "test2", {}]), ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(["/test", null], ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe(new Set(["/test", "/test2", {}]), ()=>{}), TypeError);
+					assert.throws(()=>topics.subscribe("test", ()=>{}), TypeError);
+					assert.doesNotThrow(()=>topics.subscribe("/test", ()=>{}), TypeError);
 				});
 
 				it('The subscribe method should throw if callback is not a function.', ()=>{
@@ -69,8 +71,10 @@ describe(describeItem(packageInfo), ()=>{
 				it('The publish method should throw if one or more channels not a string.', ()=>{
 					assert.throws(()=>topics.publish(null, {}), TypeError);
 					assert.throws(()=>topics.publish(true, {}), TypeError);
-					assert.throws(()=>topics.publish(["test", null], {}), TypeError);
-					assert.throws(()=>topics.publish(new Set(["test", "test2", {}]), {}), TypeError);
+					assert.throws(()=>topics.publish(["/test", null], {}), TypeError);
+					assert.throws(()=>topics.publish(new Set(["/test", "/test2", {}]), {}), TypeError);
+					assert.throws(()=>topics.publish("test", {}), TypeError);
+					assert.doesNotThrow(()=>topics.publish("/test", {}), TypeError);
 				});
 			});
 		});
