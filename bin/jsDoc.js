@@ -29,5 +29,5 @@ function parseJsDoc(src, callback) {
 }
 
 parseJsDoc(__dirname + '/../index.js', functions=>
-	fs.writeFile('./test/index.json', JSON.stringify(functions), null)
+	fs.writeFile('./test/index.json', JSON.stringify(functions), ()=>{})
 );

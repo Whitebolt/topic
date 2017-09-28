@@ -1,5 +1,32 @@
 'use strict';
 
+const isNode = (()=>{
+	try {
+		return (module && module.exports);
+	} catch (err){
+		return false;
+	}
+})();
+
+const Private = isNode?require("./lib/Private"):window.topic.Private;
+const {makeArray} = isNode?require("./lib/util"):window.topic;
+
+function _channelAction(channels, channel, action, subscription) {
+	if (!channels.has(channel)) channels.set(channel, new Set());
+	channels.get(channel)[action](subscription);
+}
+
+function _subscribe(channels, channel, filter, callback) {
+	const subscription = {callback, filter};
+
+	channel.forEach(channel=>_channelAction(channels, channel, 'add', subscription));
+
+	return ()=>{
+		channel.forEach(channel=>_channelAction(channels, channel, 'delete', subscription));
+	};
+}
+
+
 /**
  * Publish and Subscription class.
  *
@@ -20,7 +47,12 @@ class PubSub {
 	 * @returns {Function}						Unsubscribe function.
 	 */
 	subscribe(channel, filter, callback) {
-
+		return _subscribe(
+			Private.get(this, 'channels', Map),
+			makeArray(channel),
+			callback?filter:{},
+			callback?callback:filter
+		);
 	}
 
 	/**

@@ -32,6 +32,10 @@ function describeItem(items, itemName) {
 describe(describeItem(packageInfo), ()=>{
 	describe(describeItem(jsDoc, 'PubSub'), ()=>{
 		describe(describeItem(jsDoc, 'PubSub#subscribe'), ()=>{
+			it('The subscribe method should return a function', ()=>{
+				let topics = new PubSub();
+				assert.isFunction(topics.subscribe("/my-test-channel", ()=>{}));
+			});
 		});
 
 		describe(describeItem(jsDoc, 'PubSub#publish'), ()=>{
