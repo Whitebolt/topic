@@ -11,49 +11,27 @@ const isNode = (()=>{
 const Private = isNode?require("./lib/Private"):window.topic.Private;
 const Map = isNode?require("./lib/Map"):window.topic.Map;
 const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
+const createError = isNode?require("./lib/errors"):window.topic.createError;
 const globToRegExp = require("glob2regexp");
 const cache = new Map();
 
-function _channelAction(channels, channel, action, subscription) {
+function _subscriptionAction(subscriptions, channel, action, subscription) {
 	const _channel = channel.source;
 	cache.set(_channel, channel);
-	if (!channels.has(_channel)) channels.set(_channel, new Set());
-	channels.get(_channel)[action](subscription);
+	if (!subscriptions.has(_channel)) subscriptions.set(_channel, new Set());
+	subscriptions.get(_channel)[action](subscription);
 }
 
-function _channelsAction(channels, channel, action, subscription) {
-	channel.forEach(channel=>_channelAction(channels, channel, action, subscription));
+function _subscriptionsAction(subscriptions, channels, action, subscription) {
+	channels.forEach(channel=>_subscriptionAction(subscriptions, channel, action, subscription));
 }
 
-function _subscribe(channels, channel, filter, callback) {
-	if (!isFunction(callback)) throw new TypeError(`Expected subscription callback to be a function.`);
-	if (!isObject(filter)) throw new TypeError(`Expected subscription filter to be an object.`);
-	if (channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
-
-	const [subscription, regExpChannels] = [{callback, filter}, getRegExpChannels(channel)];
-	_channelsAction(channels, regExpChannels, 'add', subscription);
-	return ()=>_channelsAction(channels, regExpChannels, 'delete', subscription);
+function allChannelsAreCorrectType(channels) {
+	return !(channels.filter(channel=>(!isString(channel) && !isRegExp(channel))).length);
 }
 
 function getRegExpChannels(channels) {
 	return channels.map(channel=>(isRegExp(channel)?channel:globToRegExp(channel)));
-}
-
-function _publish(channels, channel, message) {
-	if (channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
-
-	const callbacks = new Set();
-
-	channels
-		.map((callbacks, channelSource)=>[cache.get(channelSource).test(channel), callbacks])
-		.filter(item=>item)
-		.forEach((subscriptions, channel)=>{
-			callbacks.add(subscriptions.callback)
-		});
-
-	callbacks.forEach(callback=>callback(message));
-
-	return !!callbacks.size;
 }
 
 function uniqueChannels(channels) {
@@ -63,6 +41,31 @@ function uniqueChannels(channels) {
 		for(let channel of lopper()) uniqueChannels.add(channel);
 	});
 	return Array.from(uniqueChannels);
+}
+
+function _subscribe(subscriptions, channels, filter, callback) {
+	if (!isFunction(callback)) throw createError(TypeError, 'CallbackNotFunction');
+	if (!isObject(filter)) throw createError(TypeError, 'FilterNotAnObject');
+	if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
+
+	const [subscription, regExpChannels] = [{callback, filter}, getRegExpChannels(channels)];
+	_subscriptionsAction(subscriptions, regExpChannels, 'add', subscription);
+	return ()=>_subscriptionsAction(subscriptions, regExpChannels, 'delete', subscription);
+}
+
+function _publish(subscriptions, channels, message) {
+	const callbacks = new Set();
+
+	subscriptions
+		.map((callbacks, channelSource)=>[cache.get(channelSource).test(channels), callbacks])
+		.filter(item=>item)
+		.forEach((subscriptions, channel)=>{
+			callbacks.add(subscriptions.callback)
+		});
+
+	callbacks.forEach(callback=>callback(message));
+
+	return !!callbacks.size;
 }
 
 
@@ -104,12 +107,12 @@ class PubSub {
 	 * @returns {boolean}						Did the message publish?
 	 */
 	publish(channel, message) {
-		const _channel = makeArray(channel);
-		if (_channel.filter(channel=>!isString(channel)).length) throw new TypeError(`Expected subscription channel to be a string.`);
+		const channels = makeArray(channel);
+		if (!allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
 
 		return _publish(
 			Private.get(this, 'channels', Map),
-			uniqueChannels(_channel),
+			uniqueChannels(channels),
 			message
 		);
 	}
