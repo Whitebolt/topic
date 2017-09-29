@@ -1,6 +1,6 @@
 {
   "name": "topic-subscribe",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
   "scripts": {

@@ -5,18 +5,22 @@
 const fs = require('fs');
 const jsdocParse = require("jsdoc-parse");
 
-function parseJsDoc(src, callback) {
+/**
+ * Parse an input file for jsDoc and put json results in give output file.
+ *
+ * @param {string} filePath		File path to parse jsDoc from.
+ * @param callback				Callback to fire when don.
+ */
+function parseJsDoc(filePath, callback) {
 	let txt = '';
 
 	jsdocParse({
-		src: src,
+		src: filePath,
 		private: true
 	}).on('data', function(chunk) {
 		txt += chunk.toString();
 	}).on('end', function() {
-		let data = JSON.parse(
-			txt.replace(/(?:[\n\f\r\t ]|\\n|\\r|\\t|\\f)+/g, ' ')
-		);
+		let data = JSON.parse(txt.replace(/(?:[\n\f\r\t ]|\\n|\\r|\\t|\\f)+/g, ' '));
 		let functions = {};
 
 		data.forEach(item=>{
