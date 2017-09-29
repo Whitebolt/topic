@@ -32,7 +32,7 @@ function _subscriptionAction(subscriptions, channel, action, subscription) {
  *
  * @private
  * @param {Set} subscriptions				The subscriptions to work on.
- * @param {Array.<string|RegExp} channels	The channels to apply this with.
+ * @param {Array.<string|RegExp>} channels	The channels to apply this with.
  * @param {string} action					The action to do.
  * @param {object} subscription				The subscription object to apply.
  */
@@ -45,7 +45,7 @@ function _subscriptionsAction(subscriptions, channels, action, subscription) {
  * channels fail the criteria.
  *
  * @private
- * @param {Array<string|RegExp} channels	Channels to test.
+ * @param {Array<string|RegExp>} channels	Channels to test.
  * @param {boolean} allowRegExp				Do we allow regular expressions for channels?
  * @returns {boolean}						Did they all pass?
  */
@@ -109,91 +109,91 @@ function _removingTrailingSlash(channel) {
 }
 
 /**
- * Subscribe to the given channels with the supplied listener and filter. Will use the supplied listener subscription
- * map to set listeners.
+ * Subscribe to the given channels with the supplied listener and filter. Will use the supplied listener lookup map to
+ * set listeners.
  *
  * @private
- * @param {Map} subscriptions										The listener subscriptions to subscribe on.
+ * @param {Map} listenerLookup										The listener lookup map.
  * @param {Array.<string|RegExp>|Set.<string|RegExp>} channels		The channels to subscribe to.
  * @param {Object} filter											The sift filter to use.
- * @param {Function} callback										The listener to fire when messages received.
+ * @param {Function} listener										The listener to fire when messages received.
  * @returns {Function}												Unsubscribe function.
  */
-function _subscribe(subscriptions, channels, filter, callback) {
-	if (!isFunction(callback)) throw createError(TypeError, 'CallbackNotFunction');
+function _subscribe(listenerLookup, channels, filter, listener) {
+	if (!isFunction(listener)) throw createError(TypeError, 'CallbackNotFunction');
 	if (!isObject(filter)) throw createError(TypeError, 'FilterNotAnObject');
 	if (!_allChannelsAreCorrectType(channels)) throw createError(TypeError, 'ChannelNotAString');
 
-	const subscription = {callback, filter};
-	_subscriptionsAction(subscriptions, channels, 'add', subscription);
-	return ()=>_subscriptionsAction(subscriptions, channels, 'delete', subscription);
+	const subscription = {listener, filter};
+	_subscriptionsAction(listenerLookup, channels, 'add', subscription);
+	return ()=>_subscriptionsAction(listenerLookup, channels, 'delete', subscription);
 }
 
 /**
  * Publish a message to the given listeners on the given channels.
  *
- * @param {Map} subscriptions			The listener subscriptions to publish to.
+ * @param {Map} listenerLookup			The listener lookup to use.
  * @param {Array.<string>} channels		The channels to publish on.
  * @param {*} message					The publish message.
  * @returns {boolean}					Did any listeners receive the message.
  */
-function _publish(subscriptions, channels, message) {
-	const _callbacks = new Set();
+function _publish(listenerLookup, channels, message) {
+	const publishTo = new Set();
 
-	subscriptions
-		.forEach((callbacks, subscriptionChannel)=>{
+	listenerLookup
+		.forEach((listeners, listenerChannel)=>{
 			channels.filter(channel=>{
-				if (isRegExp(subscriptionChannel)) return subscriptionChannel.test(channel);
+				if (isRegExp(listenerChannel)) return listenerChannel.test(channel);
 			}).forEach(()=>{
-				callbacks.forEach(callback=>{
-					if (sift(callback.filter, [message]).length) _callbacks.add(callback.callback);
+				listeners.forEach(subscription=>{
+					if (sift(subscription.filter, [message]).length) publishTo.add(subscription.listener);
 				})
 			});
 		});
 
 	channels.forEach(channel=>{
-		if (subscriptions.has(channel)) {
-			subscriptions.get(channel).forEach(subscription=>{
-				if (sift(subscription.filter, [message]).length) _callbacks.add(subscription.callback);
+		if (listenerLookup.has(channel)) {
+			listenerLookup.get(channel).forEach(subscription=>{
+				if (sift(subscription.filter, [message]).length) publishTo.add(subscription.listener);
 			});
 		}
 	});
 
-	_callbacks.forEach(callback=>callback(
+	publishTo.forEach(listener=>listener(
 		new Event(message, Object.freeze(channels))
 	));
 
-	return !!_callbacks.size;
+	return !!publishTo.size;
 }
 
 /**
  * Broadcast a message to the given listeners on the given channels.
  *
- * @param {Map} subscriptions			The listener subscriptions to broadcast to.
+ * @param {Map} listenerLookup			The listener lookup to use.
  * @param {Array.<string>} channels		The channels to broadcast on.
  * @param {*} message					The broadcast message.
  * @returns {boolean}					Did any listeners receive the message.
  */
-function _broadcast(subscriptions, channels, message) {
-	const _callbacks = new Set();
+function _broadcast(listenerLookup, channels, message) {
+	const broadcastTo = new Set();
 
-	subscriptions
-		.forEach((callbacks, subscriptionChannel)=>{
+	listenerLookup
+		.forEach((listeners, listenerChannel)=>{
 			channels.filter(channel=>{
-				if (isRegExp(subscriptionChannel)) return false;
-				return (subscriptionChannel.substr(0, channel.length) === channel)
+				if (isRegExp(listenerChannel)) return false;
+				return (listenerChannel.substr(0, channel.length) === channel)
 			}).forEach(()=>{
-				callbacks.forEach(callback=>{
-					if (sift(callback.filter, [message]).length) _callbacks.add(callback.callback);
+				listeners.forEach(subscription=>{
+					if (sift(subscription.filter, [message]).length) broadcastTo.add(subscription.listener);
 				})
 			});
 		});
 
-	_callbacks.forEach(callback=>callback(
+	broadcastTo.forEach(listener=>listener(
 		new Event(message, Object.freeze(channels))
 	));
 
-	return !!_callbacks.size;
+	return !!broadcastTo.size;
 }
 
 /**
@@ -207,8 +207,8 @@ class Event {
 	 * Create a new event instance.
 	 *
 	 * @method
-	 * @param {*} message			The message being published/broadcast.
-	 * @param {string} target		The target channel being published/broadcast to.
+	 * @param {*} message					The message being published/broadcast.
+	 * @param {Array.<string>} target		The target channels being published/broadcast to.
 	 */
 	constructor(message, target) {
 		Private.set(this, 'data', message);
@@ -219,7 +219,7 @@ class Event {
 	 * The message data.
 	 *
 	 * @public
-	 * @property
+	 * @property {*} {}
 	 * @returns {*}
 	 */
 	get data() {
@@ -230,7 +230,7 @@ class Event {
 	 * The original channel this was published/broadcast to.
 	 *
 	 * @public
-	 * @property
+	 * @property {Array} []
 	 * @returns {string}
 	 */
 	get target() {
@@ -260,15 +260,15 @@ class PubSub {
 	 * 																				(including glob-style patterns).
 	 * @param {Object} [filter]														Filter to filter-out messages that
 	 * 																				are not wanted.
-	 * @param {Function} callback													Callback for caught messages.
+	 * @param {Function} listener													Listener for caught messages.
 	 * @returns {Function}															Unsubscribe function.
 	 */
-	subscribe(channel, filter, callback) {
+	subscribe(channel, filter, listener) {
 		return _subscribe(
 			Private.get(this, 'channels', Map),
 			makeArray(channel).map(channel=>_removingTrailingSlash(channel)),
-			callback?filter:{},
-			callback?callback:filter
+			listener?filter:{},
+			listener?listener:filter
 		);
 	}
 
