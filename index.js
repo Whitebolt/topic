@@ -133,6 +133,70 @@ function _subscribe(listenerLookup, channels, filter, listener) {
 }
 
 /**
+ * Send a given message to listeners in supplied Set.
+ *
+ * @private
+ * @param {Set.<function>} listeners		Listeners to send messages to.
+ * @param {*} message						Message to send.
+ * @param {Array.<string>} channels			Channels we are publishing / broadcasting against.
+ * @returns {boolean}						Did any listeners receive?
+ */
+function _messageListeners(listeners, message, channels) {
+	listeners.forEach(listener=>listener(
+		new Event(message, Object.freeze(channels))
+	));
+
+	return !!listeners.size;
+}
+
+/**
+ * Add listeners to a set based on whether the given message passes the subscription filter.
+ *
+ * @private
+ * @param {Set} listeners		The listeners to filter.
+ * @param {*} message			The message to test against.
+ * @param {Set} filterSet		The set to add filtered listeners to.
+ */
+function _filterListeners(listeners, message, filterSet) {
+	listeners.forEach(subscription=>{
+		if (sift(subscription.filter, [message]).length) filterSet.add(subscription.listener);
+	})
+}
+
+/**
+ * Generator that perform filtered matching from a given lookup of listeners. Run a test function against each channel
+ * and yield listeners for each that passes.
+ *
+ * @private
+ * @generator
+ * @param {Map} listenerLookup					Channel lookup to cycle through running channel tests against.
+ * @param {Array.<string|RegExp>} channels		Channels.
+ * @param {function} channelTest				Channel test function.
+ * @yields {Set}								Listeners from matching channel.
+ */
+function* _channelMatcher(listenerLookup, channels, channelTest) {
+	for (let [listenerChannel, listeners] of listenerLookup) {
+		const filteredChannels = channels.filter(channel=>channelTest(listenerChannel, channel));
+		if (filteredChannels.length) yield listeners;
+	}
+}
+
+/**
+ * Generator for obtaining listeners for given channels.
+ *
+ * @private
+ * @generator
+ * @param {Map} listenerLookup					Lookup to test against.
+ * @param {Array.<string|RegExp>} channels		Channels to look for.
+ * @yield {Set}									Listeners found.
+ */
+function* _inChannelsLookup(listenerLookup, channels) {
+	for (let n=0; n<channels.length; n++) {
+		if (listenerLookup.has(channels[n])) yield listenerLookup.get(channels[n]);
+	}
+}
+
+/**
  * Publish a message to the given listeners on the given channels.
  *
  * @param {Map} listenerLookup			The listener lookup to use.
@@ -142,31 +206,14 @@ function _subscribe(listenerLookup, channels, filter, listener) {
  */
 function _publish(listenerLookup, channels, message) {
 	const publishTo = new Set();
-
-	listenerLookup
-		.forEach((listeners, listenerChannel)=>{
-			channels.filter(channel=>{
-				if (isRegExp(listenerChannel)) return listenerChannel.test(channel);
-			}).forEach(()=>{
-				listeners.forEach(subscription=>{
-					if (sift(subscription.filter, [message]).length) publishTo.add(subscription.listener);
-				})
-			});
-		});
-
-	channels.forEach(channel=>{
-		if (listenerLookup.has(channel)) {
-			listenerLookup.get(channel).forEach(subscription=>{
-				if (sift(subscription.filter, [message]).length) publishTo.add(subscription.listener);
-			});
-		}
+	const matcher1 = _channelMatcher(listenerLookup, channels, (listenerChannel, channel)=>{
+		if (isRegExp(listenerChannel)) return listenerChannel.test(channel);
 	});
+	const matcher2 = _inChannelsLookup(listenerLookup, channels);
 
-	publishTo.forEach(listener=>listener(
-		new Event(message, Object.freeze(channels))
-	));
+	for(const listeners of [...matcher1, ...matcher2]) _filterListeners(listeners, message, publishTo);
 
-	return !!publishTo.size;
+	return _messageListeners(publishTo, message, channels);
 }
 
 /**
@@ -179,24 +226,14 @@ function _publish(listenerLookup, channels, message) {
  */
 function _broadcast(listenerLookup, channels, message) {
 	const broadcastTo = new Set();
+	const matcher = _channelMatcher(listenerLookup, channels, (listenerChannel, channel)=>{
+		if (isRegExp(listenerChannel)) return false;
+		return (listenerChannel.substr(0, channel.length) === channel);
+	});
 
-	listenerLookup
-		.forEach((listeners, listenerChannel)=>{
-			channels.filter(channel=>{
-				if (isRegExp(listenerChannel)) return false;
-				return (listenerChannel.substr(0, channel.length) === channel)
-			}).forEach(()=>{
-				listeners.forEach(subscription=>{
-					if (sift(subscription.filter, [message]).length) broadcastTo.add(subscription.listener);
-				})
-			});
-		});
+	for (const listeners of matcher) _filterListeners(listeners, message, broadcastTo);
 
-	broadcastTo.forEach(listener=>listener(
-		new Event(message, Object.freeze(channels))
-	));
-
-	return !!broadcastTo.size;
+	return _messageListeners(broadcastTo, message, channels);
 }
 
 /**
