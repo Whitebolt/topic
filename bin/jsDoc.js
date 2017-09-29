@@ -3,35 +3,30 @@
 'use strict';
 
 const fs = require('fs');
-const jsdocParse = require("jsdoc-parse");
+const jsdoc = require('jsdoc-api');
 
 /**
  * Parse an input file for jsDoc and put json results in give output file.
  *
  * @param {string} filePath		File path to parse jsDoc from.
- * @param callback				Callback to fire when don.
+ * @returns {Object}			Parsed jsDoc data.
  */
-function parseJsDoc(filePath, callback) {
-	let txt = '';
+function parseJsDoc(filePath) {
+	const data = {};
 
-	jsdocParse({
-		src: filePath,
-		private: true
-	}).on('data', function(chunk) {
-		txt += chunk.toString();
-	}).on('end', function() {
-		let data = JSON.parse(txt.replace(/(?:[\n\f\r\t ]|\\n|\\r|\\t|\\f)+/g, ' '));
-		let functions = {};
-
-		data.forEach(item=>{
-			functions[item.id] = item;
-			delete item.id;
-		});
-
-		callback(functions);
+	jsdoc.explainSync({files:[filePath]}).forEach(item=>{
+		if (!item.undocumented && !data.hasOwnProperty(item.longname)) {
+			data[item.longname] =  {
+				name: item.name,
+				description: item.classdesc || item.description
+			};
+		}
 	});
+
+	return data;
 }
 
-parseJsDoc(__dirname + '/../index.js', functions=>
-	fs.writeFile('./test/index.json', JSON.stringify(functions), ()=>{})
+fs.writeFileSync(
+	'./test/index.json',
+	JSON.stringify(parseJsDoc(__dirname + '/../index.js'))
 );
