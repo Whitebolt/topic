@@ -10,7 +10,7 @@ const isNode = (()=>{
 
 const sift = require('sift');
 const Private = isNode?require("./lib/Private"):window.topic.Private;
-const {makeArray, isString, isFunction, isObject, isRegExp, lopGen} = isNode?require("./lib/util"):window.topic;
+const {makeArray, isString, isFunction, isObject, isRegExp, lopper} = isNode?require("./lib/util"):window.topic;
 const createError = isNode?require("./lib/errors"):window.topic.createError;
 
 /**
@@ -58,10 +58,13 @@ function _allChannelsAreCorrectType(channels, allowRegExp=true) {
 /**
  * Generator for all ancestor channels of a given array of channels.
  *
+ * @private
+ * @generator
  * @param {Array.<string>} channels		Channels to expand.
+ * @yields {string}						Channel.
  */
-function* allAncestorChannels(channels) {
-	const loppers = channels.map(channel=>lopGen(channel)());
+function* _allAncestorChannels(channels) {
+	const loppers = channels.map(channel=>lopper(channel));
 
 	while (true) {
 		let done = 0;
@@ -87,7 +90,7 @@ function* allAncestorChannels(channels) {
 function _uniqueChannels(channels) {
 	const uniqueChannels = new Set();
 
-	const lopper = allAncestorChannels(channels);
+	const lopper = _allAncestorChannels(channels);
 	for(let channel of lopper) uniqueChannels.add(channel);
 
 	return Array.from(uniqueChannels);
