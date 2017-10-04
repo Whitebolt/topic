@@ -2,6 +2,7 @@
   "name": "topic-subscribe",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
+  "version": "0.7.0",
   "scripts": {
     "test": "./node_modules/.bin/gulp node:test",
     "build": "./node_modules/.bin/gulp browser:build"
@@ -76,7 +77,7 @@
       "./lib/errors.js",
       "./index.js",
       "./lib/jquery.js",
-      "./lib/anguar.js"
+      "./lib/angular.js"
     ],
     "dest": "./build",
     "test": "./test"
