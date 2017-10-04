@@ -428,6 +428,14 @@ babel-plugin-transform-strict-mode@^6.24.1:
     babel-runtime "^6.22.0"
     babel-types "^6.24.1"
 
+babel-polyfill@^6.26.0:
+  version "6.26.0"
+  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.26.0.tgz#379937abc67d7895970adc621f284cd966cf2153"
+  dependencies:
+    babel-runtime "^6.26.0"
+    core-js "^2.5.0"
+    regenerator-runtime "^0.10.5"
+
 babel-preset-env@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/babel-preset-env/-/babel-preset-env-1.6.0.tgz#2de1c782a780a0a5d605d199c957596da43c44e4"
@@ -661,7 +669,7 @@ convert-source-map@1.X:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.5.0.tgz#9acd70851c6d5dfdd93d9282e5edf94a03ff46b5"
 
-core-js@^2.4.0:
+core-js@^2.4.0, core-js@^2.5.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.1.tgz#ae6874dc66937789b80754ff5428df66819ca50b"
 
@@ -822,7 +830,7 @@ event-emitter@^0.3.5:
     d "1"
     es5-ext "~0.10.14"
 
-event-stream@^3.3.0:
+event-stream@^3.1.7, event-stream@^3.3.0:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
   dependencies:
@@ -831,6 +839,18 @@ event-stream@^3.3.0:
     map-stream "~0.1.0"
     pause-stream "0.0.11"
     split "0.3"
+    stream-combiner "~0.0.4"
+    through "~2.3.1"
+
+event-stream@~3.1.0:
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/event-stream/-/event-stream-3.1.7.tgz#b4c540012d0fe1498420f3d8946008db6393c37a"
+  dependencies:
+    duplexer "~0.1.1"
+    from "~0"
+    map-stream "~0.1.0"
+    pause-stream "0.0.11"
+    split "0.2"
     stream-combiner "~0.0.4"
     through "~2.3.1"
 
@@ -1133,6 +1153,20 @@ gulp-iife@^0.3.0:
     through2 "^2.0.0"
     vinyl-sourcemaps-apply "^0.2.1"
 
+gulp-inject-string@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/gulp-inject-string/-/gulp-inject-string-1.1.0.tgz#f02ddedb0f7518dfbad548f7d2df05bae2ed1f64"
+  dependencies:
+    event-stream "^3.1.7"
+    gulp-util "^3.0.0"
+
+gulp-insert-lines@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/gulp-insert-lines/-/gulp-insert-lines-0.0.4.tgz#2ceb805c8945d6d9c3e378a56e1d8a15c40e24b3"
+  dependencies:
+    event-stream "~3.1.0"
+    gulp-util ">=2.2.0"
+
 gulp-mocha@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/gulp-mocha/-/gulp-mocha-4.3.1.tgz#77950b43bcff816595767c0734e0fda7d173dcd9"
@@ -1151,13 +1185,6 @@ gulp-remove-code@^1.0.2:
     bufferstreams "1.0.1"
     event-stream "^3.3.0"
     gulp-util "^3.0.4"
-
-gulp-require-tasks@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/gulp-require-tasks/-/gulp-require-tasks-1.2.1.tgz#b9a8c771cb3b1eca70811374f1fd73fbaa47ad80"
-  dependencies:
-    gulp "^3.9.1"
-    require-directory "^2.1.1"
 
 gulp-sourcemaps@^2.6.1:
   version "2.6.1"
@@ -1188,7 +1215,7 @@ gulp-uglify@^3.0.0:
     uglify-js "^3.0.5"
     vinyl-sourcemaps-apply "^0.2.0"
 
-gulp-util@^3.0.0, gulp-util@^3.0.4, gulp-util@^3.0.8:
+gulp-util@>=2.2.0, gulp-util@^3.0.0, gulp-util@^3.0.4, gulp-util@^3.0.8:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/gulp-util/-/gulp-util-3.0.8.tgz#0054e1e744502e27c04c187c3ecc505dd54bbb4f"
   dependencies:
@@ -1211,7 +1238,7 @@ gulp-util@^3.0.0, gulp-util@^3.0.4, gulp-util@^3.0.8:
     through2 "^2.0.0"
     vinyl "^0.5.0"
 
-gulp@^3.9.1:
+gulp@^3.8.7:
   version "3.9.1"
   resolved "https://registry.yarnpkg.com/gulp/-/gulp-3.9.1.tgz#571ce45928dd40af6514fc4011866016c13845b4"
   dependencies:
@@ -1954,6 +1981,10 @@ regenerate@^1.2.1:
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/regenerate/-/regenerate-1.3.3.tgz#0c336d3980553d755c39b586ae3b20aa49c82b7f"
 
+regenerator-runtime@^0.10.5:
+  version "0.10.5"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz#336c3efc1220adcedda2c9fab67b5a7955a33658"
+
 regenerator-runtime@^0.11.0:
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.11.0.tgz#7e54fe5b5ccd5d6624ea6255c3473be090b802e1"
@@ -2009,10 +2040,6 @@ replace-ext@0.0.1:
 replace-ext@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.0.tgz#de63128373fcbf7c3ccfa4de5a480c45a67958eb"
-
-require-directory@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/require-directory/-/require-directory-2.1.1.tgz#8c64ad5fd30dab1c976e2344ffe7f792a6a6df42"
 
 requizzle@~0.2.1:
   version "0.2.1"
@@ -2105,6 +2132,12 @@ source-map@^0.5.1, source-map@^0.5.3, source-map@^0.5.6, source-map@~0.5.1:
 sparkles@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/sparkles/-/sparkles-1.0.0.tgz#1acbbfb592436d10bbe8f785b7cc6f82815012c3"
+
+split@0.2:
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/split/-/split-0.2.10.tgz#67097c601d697ce1368f418f06cd201cf0521a57"
+  dependencies:
+    through "2"
 
 split@0.3:
   version "0.3.3"

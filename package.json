@@ -2,12 +2,15 @@
   "name": "topic-subscribe",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "scripts": {
     "test": "./node_modules/.bin/gulp node:test",
-    "build": "./node_modules/.bin/gulp browser:build"
+    "build": "./node_modules/.bin/gulp browser:build",
+    "build-browser": "./node_modules/.bin/gulp browser:build",
+    "build-node": "./node_modules/.bin/gulp node:build",
+    "postinstall": "node_modules/.bin/gulp node:build"
   },
-  "engines": ">=6.0.0",
+  "engines": ">=4.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitebolt/topic-subscribe.git"
@@ -39,6 +42,7 @@
   },
   "homepage": "https://github.com/whitebolt/topic-subscribe#readme",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "sift": "^5.0.0"
   },
   "devDependencies": {
@@ -48,38 +52,44 @@
     "babel-plugin-transform-regenerator": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
+    "gulp": "^3.8.7",
     "gulp-concat": "^2.6.1",
     "gulp-iife": "^0.3.0",
+    "gulp-inject-string": "^1.1.0",
+    "gulp-insert-lines": "^0.0.4",
     "gulp-mocha": "^4.3.1",
     "gulp-remove-code": "^1.0.2",
-    "gulp-require-tasks": "^1.2.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "jsdoc-api": "^4.0.0",
     "mocha": "^3.5.3"
   },
-  "babel": {
-    "presets": [
-      "env"
-    ],
-    "plugins": [
-      "syntax-async-functions",
-      "syntax-async-generators",
-      "transform-async-generator-functions",
-      "transform-regenerator"
-    ]
-  },
   "gulp": {
     "source": [
       "./lib/util.js",
       "./lib/Private.js",
       "./lib/errors.js",
-      "./index.js",
+      "./lib/index.js",
       "./lib/jquery.js",
       "./lib/angular.js"
     ],
     "dest": "./build",
-    "test": "./test"
+    "test": {
+      "root": "./test",
+      "unit": "/unit",
+      "build": "/build"
+    },
+    "babel": {
+      "presets": [
+        "env"
+      ],
+      "plugins": [
+        "syntax-async-functions",
+        "syntax-async-generators",
+        "transform-async-generator-functions",
+        "transform-regenerator"
+      ]
+    }
   }
 }

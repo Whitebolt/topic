@@ -4,9 +4,9 @@
 
 'use strict';
 
-const packageInfo = require('../package.json');
+const packageInfo = require(process.cwd()+'/package.json');
 const jsDoc = require('./index.json');
-const PubSub = require('../');
+const PubSub = require(process.cwd());
 const chai = require('chai');
 const assert = chai.assert;
 

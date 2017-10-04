@@ -29,11 +29,11 @@ function parseJsDoc(filePath) {
 
 function fn(gulp) {
 	fs.writeFileSync(
-		process.cwd() + '/' + settings.test + '/index.json',
-		JSON.stringify(parseJsDoc(process.cwd() + '/index.js'))
+		process.cwd() + '/' + settings.test.root + settings.test.build + '/index.json',
+		JSON.stringify(parseJsDoc(process.cwd() + '/lib/index.js'))
 	);
 
-	return gulp.src(settings.test + '/*.js', {read: false}).pipe(mocha())
+	return gulp.src(settings.test.root + settings.test.build + '/index.js', {read: false}).pipe(mocha())
 }
 
-module.exports = {deps: [], fn};
+module.exports = {deps: ["node:build"], fn};

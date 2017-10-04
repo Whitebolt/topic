@@ -25,7 +25,7 @@ function fn(gulp) {
 			.pipe(sourcemaps.init({loadMaps: true}))
 			.pipe(concat(settings.name + '.min.js'))
 			.pipe(removeCode({browser:true}))
-			.pipe(babel())
+			.pipe(babel(settings.babel))
 			.pipe(uglify().on('error', gutil.log))
 			.pipe(iife())
 			.pipe(sourcemaps.write('./'))
