@@ -1,17 +1,11 @@
+//removeIf(browser)
 'use strict';
 
-const isNode = (()=>{
-	try {
-		return (module && module.exports);
-	} catch (err){
-		return false;
-	}
-})();
-
 const sift = require('sift');
-const Private = isNode?require("./lib/Private"):window.topic.Private;
-const {makeArray, isString, isFunction, isObject, isRegExp, lopper} = isNode?require("./lib/util"):window.topic;
-const createError = isNode?require("./lib/errors"):window.topic.createError;
+const Private = require("./lib/Private");
+const {makeArray, isString, isFunction, isObject, isRegExp, lopper} = require("./lib/util");
+const createError = require("./lib/errors");
+//endRemoveIf(browser)
 
 /**
  * Apply a given action on a given set, against a given channel with the given subscription.
@@ -353,4 +347,27 @@ class PubSub {
 	}
 }
 
+try {
+	if (window) {
+		if (window.jQuery || window.$) {
+			const $ = window.jQuery || window.$;
+			const pubsubs = new Map();
+
+			$.pubsub = function(name, ...params) {
+				if (!pubsubs.has(name)) pubsubs.set(name, new PubSub(...params));
+				return pubsubs.get(name);
+			};
+		}
+
+		if (window.angular) {
+			const pubsub = new PubSub();
+			window.angular.module("TopSubscribe", []).factory("pubsub", pubsub);
+		}
+	}
+} catch(err) {
+
+}
+
+//removeIf(browser)
 module.exports = PubSub;
+//endRemoveIf(browser)

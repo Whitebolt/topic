@@ -41,3 +41,7 @@ jspm_packages
 
 #project
 test/index.json
+topic-subscribe.js
+topic-subscribe.js.map
+topic-subscribe.min.js
+topic-subscribe.min.js.map

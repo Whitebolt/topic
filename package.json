@@ -1,6 +1,5 @@
 {
   "name": "topic-subscribe",
-  "version": "0.6.1",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
   "scripts": {
@@ -41,9 +40,40 @@
     "sift": "^5.0.0"
   },
   "devDependencies": {
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-syntax-async-generators": "^6.13.0",
+    "babel-plugin-transform-async-generator-functions": "^6.24.1",
+    "babel-plugin-transform-regenerator": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-iife": "^0.3.0",
+    "gulp-remove-code": "^1.0.2",
+    "gulp-require-tasks": "^1.2.1",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-uglify": "^3.0.0",
+    "gulp-util": "^3.0.8",
     "jsdoc-api": "^4.0.0",
     "mocha": "^3.5.3"
   },
-  "errors": {}
+  "babel": {
+    "presets": [
+      "env"
+    ],
+    "plugins": [
+      "syntax-async-functions",
+      "syntax-async-generators",
+      "transform-async-generator-functions",
+      "transform-regenerator"
+    ]
+  },
+  "gulp": {
+    "source": [
+      "./lib/util.js",
+      "./lib/Private.js",
+      "./lib/errors.js",
+      "./index.js"
+    ],
+    "dest": "./"
+  }
 }
