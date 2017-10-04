@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Whitebolt/topic-subscribe.svg?branch=master)](https://travis-ci.org/Whitebolt/topic-subscribe)
+
 # Topic Subscribe
 Publish and subscription module with broadcast and message filtering.
 
