@@ -53,6 +53,7 @@
     "babel-preset-env": "^1.6.0",
     "chai": "^4.1.2",
     "gulp": "^3.8.7",
+    "gulp-babel": "^7.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-iife": "^0.3.0",
     "gulp-inject-string": "^1.1.0",
