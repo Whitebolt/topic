@@ -347,27 +347,6 @@ class PubSub {
 	}
 }
 
-try {
-	if (window) {
-		if (window.jQuery || window.$) {
-			const $ = window.jQuery || window.$;
-			const pubsubs = new Map();
-
-			$.pubsub = function(name, ...params) {
-				if (!pubsubs.has(name)) pubsubs.set(name, new PubSub(...params));
-				return pubsubs.get(name);
-			};
-		}
-
-		if (window.angular) {
-			const pubsub = new PubSub();
-			window.angular.module("TopSubscribe", []).factory("pubsub", pubsub);
-		}
-	}
-} catch(err) {
-
-}
-
 //removeIf(browser)
 module.exports = PubSub;
 //endRemoveIf(browser)

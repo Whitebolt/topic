@@ -3,7 +3,8 @@
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
   "scripts": {
-    "test": "./bin/test"
+    "test": "./node_modules/.bin/gulp node:test",
+    "build": "./node_modules/.bin/gulp browser:build"
   },
   "engines": ">=6.0.0",
   "repository": {
@@ -48,6 +49,7 @@
     "chai": "^4.1.2",
     "gulp-concat": "^2.6.1",
     "gulp-iife": "^0.3.0",
+    "gulp-mocha": "^4.3.1",
     "gulp-remove-code": "^1.0.2",
     "gulp-require-tasks": "^1.2.1",
     "gulp-sourcemaps": "^2.6.1",
@@ -72,8 +74,11 @@
       "./lib/util.js",
       "./lib/Private.js",
       "./lib/errors.js",
-      "./index.js"
+      "./index.js",
+      "./lib/jquery.js",
+      "./lib/anguar.js"
     ],
-    "dest": "./"
+    "dest": "./build",
+    "test": "./test"
   }
 }

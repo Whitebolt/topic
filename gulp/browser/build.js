@@ -19,7 +19,7 @@ function fn(gulp) {
 		.pipe(concat(settings.name + '.js'))
 		.pipe(removeCode({browser:true}))
 		.pipe(iife())
-		.pipe(sourcemaps.write(settings.dest))
+		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest(settings.dest))
 		.on('end', ()=>gulp.src(settings.source)
 			.pipe(sourcemaps.init({loadMaps: true}))
@@ -28,7 +28,7 @@ function fn(gulp) {
 			.pipe(babel())
 			.pipe(uglify().on('error', gutil.log))
 			.pipe(iife())
-			.pipe(sourcemaps.write(settings.dest))
+			.pipe(sourcemaps.write('./'))
 			.pipe(gulp.dest(settings.dest))
 		);
 }
