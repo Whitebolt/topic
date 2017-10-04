@@ -10,7 +10,7 @@
     "build-node": "./node_modules/.bin/gulp node:build",
     "postinstall": "node_modules/.bin/gulp node:build"
   },
-  "engines": ">=4.0.0",
+  "engines": ">=4.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitebolt/topic-subscribe.git"
