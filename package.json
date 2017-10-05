@@ -4,11 +4,13 @@
   "main": "index.js",
   "version": "0.8.1",
   "scripts": {
-    "test": "./node_modules/.bin/gulp node:test",
-    "build": "./node_modules/.bin/gulp browser:build",
+    "test": "./node_modules/.bin/gulp test",
+    "build": "./node_modules/.bin/gulp build",
     "build-browser": "./node_modules/.bin/gulp browser:build",
     "build-node": "./node_modules/.bin/gulp node:build",
-    "postinstall": "node_modules/.bin/gulp node:build"
+    "test-browser": "./node_modules/.bin/gulp browser:test",
+    "test-node": "./node_modules/.bin/gulp node:test",
+    "postinstall": "node_modules/.bin/gulp build"
   },
   "engines": ">=4.2.0",
   "repository": {
@@ -60,10 +62,12 @@
     "gulp-inject-string": "^1.1.0",
     "gulp-insert-lines": "^0.0.4",
     "gulp-mocha": "^4.3.1",
+    "gulp-mocha-chrome": "^0.1.0",
     "gulp-remove-code": "^1.0.2",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
+    "jquery": "^3.2.1",
     "jsdoc-api": "^4.0.0",
     "mocha": "^3.5.3"
   },

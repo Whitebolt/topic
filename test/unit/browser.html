@@ -1,0 +1,27 @@
+<html>
+<head>
+	<title>Topic Subscribe</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="../../node_modules/mocha/mocha.css" />
+</head>
+<body>
+<div id="mocha"></div>
+<footer>
+	<script src="../../node_modules/babel-polyfill/dist/polyfill.min.js"></script>
+	<script src="../../node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="../../node_modules/sift/sift.min.js"></script>
+	<script src="../../node_modules/chai/chai.js"></script>
+	<script src="../../node_modules/mocha/mocha.js"></script>
+	<script src="../../build/topic-subscribe.js"></script>
+	<script>
+		const assert = chai.assert;
+		mocha.setup('bdd');
+	</script>
+	<script src="../build/browser.js"></script>
+	<script>
+		runner();
+	</script>
+</footer>
+</body>
+</html>
