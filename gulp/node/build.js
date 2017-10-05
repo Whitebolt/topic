@@ -29,12 +29,12 @@ if (nodeVersion < 8) polyfill = 'require("babel-polyfill");\n';
 
 function fn(gulp) {
 	return gulp.src(settings.source)
-		.pipe(concat('_index.js'))
+		.pipe(concat(settings.name + '.node.js'))
 		.pipe(removeCode({node:true}))
 		.pipe(babel(babelConfig))
 		.pipe(add.after('\'use strict\';\n', polyfill))
-		.pipe(concat('_index.js'))
-		.pipe(gulp.dest(process.cwd()+'/lib'))
+		.pipe(concat(settings.name + '.node.js'))
+		.pipe(gulp.dest(process.cwd()+'/'+settings.dest))
 		.on('end', ()=>gulp.src(settings.test.root + settings.test.unit + '/*.js')
 			.pipe(concat('index.js'))
 			.pipe(removeCode({node:true}))
