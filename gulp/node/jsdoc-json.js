@@ -1,17 +1,18 @@
 'use strict';
 
 const settings = require(process.cwd()+'/package.json').gulp;
+const nodeVersion = parseFloat(process.versions.node.split('.').slice(0, 2).join('.'));
 
 const fs = require('fs');
-const jsdoc = require('jsdoc-api');
 
 /**
  * Parse an input file for jsDoc and put json results in give output file.
  *
  * @param {string} filePath			File path to parse jsDoc from.
+ * @param {Object} jsdoc			The jsdoc class.
  * @returns {Promise.<Object>}		Parsed jsDoc data.
  */
-function parseJsDoc(filePath) {
+function parseJsDoc(filePath, jsdoc) {
 	return jsdoc.explain({files:[filePath]}).then(items=>{
 		const data = {};
 		items.forEach(item=>{
@@ -44,9 +45,16 @@ function write(filepath, contents) {
 }
 
 function fn(gulp, done) {
-	parseJsDoc(process.cwd() + '/lib/index.js').then(data=>{
-		return write(process.cwd() + '/' + settings.test.root + settings.test.build + '/index.json', JSON.stringify(data));
-	}).then(done);
+	if (nodeVersion >= 4.2) {
+		const jsdoc = require('jsdoc-api');
+
+		parseJsDoc(process.cwd() + '/lib/index.js', jsdoc).then(data=>{
+			return write(process.cwd() + '/' + settings.test.root + settings.test.build + '/index.json', JSON.stringify(data));
+		}).then(done);
+	} else {
+		console.log('Jsdoc-api module does not work in node < 4.2.  This means no nice print-outs in test suits.');
+		done();
+	}
 }
 
 module.exports = {deps: [], fn};

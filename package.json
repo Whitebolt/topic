@@ -2,17 +2,17 @@
   "name": "topic-subscribe",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "scripts": {
-    "test": "./node_modules/.bin/gulp test",
-    "build": "./node_modules/.bin/gulp build",
-    "build-browser": "./node_modules/.bin/gulp browser:build",
-    "build-node": "./node_modules/.bin/gulp node:build",
-    "test-browser": "./node_modules/.bin/gulp browser:test",
-    "test-node": "./node_modules/.bin/gulp node:test",
-    "postinstall": "node_modules/.bin/gulp build"
+    "test": "./gulpfile.js test",
+    "build": "./gulpfile.js build",
+    "build-browser": "./gulpfile.js browser:build",
+    "build-node": "./gulpfile.js node:build",
+    "test-browser": "./gulpfile.js browser:test",
+    "test-node": "./gulpfile.js node:test",
+    "postinstall": "./gulpfile.js build"
   },
-  "engines": ">=4.2.0",
+  "engines": ">=4.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Whitebolt/topic-subscribe.git"
@@ -69,7 +69,8 @@
     "gulp-util": "^3.0.8",
     "jquery": "^3.2.1",
     "jsdoc-api": "^4.0.0",
-    "mocha": "^3.5.3"
+    "mocha": "^3.5.3",
+    "run-sequence": "^2.2.0"
   },
   "gulp": {
     "source": [

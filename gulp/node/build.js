@@ -27,8 +27,9 @@ const babelConfig = {
 if (nodeVersion < 5) babelConfig.presets[0][1].include = ["babel-plugin-transform-es2015-spread"];
 if (nodeVersion < 8) polyfill = 'require("babel-polyfill");\n';
 
-function fn(gulp) {
-	return gulp.src(settings.source)
+
+function fn(gulp, done) {
+	gulp.src(settings.source)
 		.pipe(concat(settings.name + '.node.js'))
 		.pipe(removeCode({node:true}))
 		.pipe(babel(babelConfig))
@@ -41,6 +42,7 @@ function fn(gulp) {
 			.pipe(babel(babelConfig))
 			.pipe(add.after('\'use strict\';\n', polyfill))
 			.pipe(gulp.dest(settings.test.root + settings.test.build))
+			.on('end', done)
 		)
 }
 

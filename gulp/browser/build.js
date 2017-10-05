@@ -30,11 +30,19 @@ const babelConfig = {
 if (nodeVersion < 5) babelConfig.presets[0][1].include = ["babel-plugin-transform-es2015-spread"];
 if (nodeVersion < 8) polyfill = 'require("babel-polyfill");\n';
 
-function fn(gulp) {
-	const packageInfo = require(process.cwd()+'/package.json');
-	const jsDoc = require(process.cwd() + '/' + settings.test.root + settings.test.build + '/index.json');
+function tryRequire(moduleId, defaultValue) {
+	try {
+		return require(moduleId);
+	} catch(err) {
+		return ((defaultValue !== undefined)?defaultValue:{});
+	}
+}
 
-	return gulp.src(settings.source)
+function fn(gulp, done) {
+	const packageInfo = require(process.cwd()+'/package.json');
+	const jsDoc = tryRequire(process.cwd() + '/' + settings.test.root + settings.test.build + '/index.json');
+
+	gulp.src(settings.source)
 		.pipe(sourcemaps.init({loadMaps: true}))
 		.pipe(concat(settings.name + '.js'))
 		.pipe(removeCode({browser:true}))
@@ -50,15 +58,17 @@ function fn(gulp) {
 			.pipe(iife())
 			.pipe(sourcemaps.write('./'))
 			.pipe(gulp.dest(settings.dest))
-		).on('end', ()=>gulp.src(settings.test.root + settings.test.unit + '/*.js')
-			.pipe(concat('browser.js'))
-			.pipe(removeCode({browser:true}))
-			.pipe(babel(babelConfig))
-			.pipe(add.after('\'use strict\';\n', 'const packageInfo = ' + JSON.stringify(packageInfo) + ';\n'))
-			.pipe(add.after('\'use strict\';\n', 'const jsDoc = ' + JSON.stringify(jsDoc) + ';\n'))
-			.pipe(add.after('\'use strict\';\n', polyfill))
-			.pipe(gulp.dest(settings.test.root + settings.test.build))
-		);
+			.on('end', ()=>gulp.src(settings.test.root + settings.test.unit + '/*.js')
+				.pipe(concat('browser.js'))
+				.pipe(removeCode({browser:true}))
+				.pipe(babel(babelConfig))
+				.pipe(add.after('\'use strict\';\n', 'const packageInfo = ' + JSON.stringify(packageInfo) + ';\n'))
+				.pipe(add.after('\'use strict\';\n', 'const jsDoc = ' + JSON.stringify(jsDoc) + ';\n'))
+				.pipe(add.after('\'use strict\';\n', polyfill))
+				.pipe(gulp.dest(settings.test.root + settings.test.build))
+				.on('end', done)
+			)
+		)
 }
 
 module.exports = {deps: ['node:jsdoc-json'], fn};

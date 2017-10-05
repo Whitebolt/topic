@@ -5,10 +5,18 @@
 'use strict';
 
 const packageInfo = require(process.cwd()+'/package.json');
-const jsDoc = require('./index.json');
+const jsDoc = tryRequire('./index.json');
 const PubSub = require(process.cwd());
 const chai = require('chai');
 const assert = chai.assert;
+
+function tryRequire(moduleId, defaultValue) {
+	try {
+		return require(moduleId);
+	} catch(err) {
+		return ((defaultValue !== undefined)?defaultValue:{});
+	}
+}
 //endRemoveIf(browser)
 
 let counter = 0;
@@ -26,7 +34,7 @@ function describeItem(items, itemName) {
 		if (itemName) return items[itemName].name + '(): ' + items[itemName].description;
 		return items.name + ': ' + items.description;
 	} catch(err) {
-		throw new SyntaxError('Could not find the requested item: ' + itemName);
+		return '';
 	}
 }
 

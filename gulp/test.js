@@ -1,3 +1,9 @@
 'use strict';
 
-module.exports = {deps: ['node:test', 'browser:test'], fn:()=>{}};
+const run = require('run-sequence');
+
+function fn(gulp, done) {
+	run('node:test', 'browser:test', done);
+}
+
+module.exports = {deps: ['node:test', 'browser:test'], fn};
