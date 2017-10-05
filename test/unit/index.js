@@ -317,7 +317,7 @@ function runner() {
 				//endRemoveIf(browser)
 			});
 
-			describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=> {
+			describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=>{
 				const topics = getPubSubInstance();
 
 				//removeIf(browser)
@@ -407,6 +407,68 @@ function runner() {
 						description: 'Message priority 1'
 					});
 					assert.equal(called, 1);
+				});
+			});
+
+			describe(describeItem(jsDoc, 'PubSub#unsubscribe'), ()=>{
+				const topics = getPubSubInstance();
+
+				//removeIf(browser)
+				it('The unsubscribe method should return a boolean.', ()=>{
+					assert.isBoolean(topics.unsubscribe('/test'));
+					assert.isBoolean(topics.unsubscribe(()=>{}));
+				});
+				//endRemoveIf(browser)
+
+				//removeIf(node)
+				it('The broadcast method should return a jQuery-style object.', ()=>{
+					assert.instanceOf(topics.unsubscribe('/test'), $);
+					assert.isFunction(topics.unsubscribe('/test').on);
+					assert.isFunction(topics.unsubscribe(()=>{}).trigger);
+					assert.isFunction(topics.unsubscribe(()=>{}).filter);
+				});
+				//endRemoveIf(node)
+
+				describe('Unsubscribe should unsubscribe given listeners or all listeners on a given channel', ()=>{
+					it('Unsubscribe should remove all listeners on given channel.', ()=>{
+						let called = 0;
+						topics.subscribe('/test', ()=>called++);
+						topics.subscribe('/test', ()=>called++);
+						topics.subscribe('/test', ()=>called++);
+						topics.publish('/test', 'TEST MESSAGE');
+						assert.equal(called, 3);
+						topics.unsubscribe('/test');
+						topics.publish('/test', 'TEST MESSAGE');
+						assert.equal(called, 3);
+					});
+
+					it('Unsubscribe should remove all listeners on all given channels.', ()=>{
+						let called = 0;
+						topics.subscribe('/test/1', ()=>called++);
+						topics.subscribe('/test/2', ()=>called++);
+						topics.subscribe('/test/3', ()=>called++);
+						topics.broadcast('/test', 'TEST MESSAGE');
+						assert.equal(called, 3);
+						topics.unsubscribe(['/test/1', '/test/2', '/test/3']);
+						topics.broadcast('/test', 'TEST MESSAGE');
+						assert.equal(called, 3);
+					});
+
+					it('Unsubscribe should remove given listeners wherever they are subscribed.', ()=>{
+						let called = 0;
+						let listener = ()=>called++;
+
+						topics.subscribe('/test/1', listener);
+						topics.subscribe('/test/2', listener);
+						topics.subscribe('/test/3', listener);
+						topics.broadcast('/test', 'TEST MESSAGE');
+						assert.equal(called, 1);
+						topics.unsubscribe(listener);
+						topics.publish('/test/1', 'TEST MESSAGE');
+						topics.publish('/test/2', 'TEST MESSAGE');
+						topics.publish('/test/3', 'TEST MESSAGE');
+						assert.equal(called, 1);
+					});
 				});
 			});
 		});

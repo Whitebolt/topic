@@ -132,39 +132,50 @@ You can also broadcast, which is the opposite to publishing in terms of bubbling
 pubsub.broadcast('/', "My message to everyone!"); 
 ```
 
+## Unsubscribe
+
+The subscribe method returns an unsubscribe function.  Removing the listener is simply a matter of calling the function.
+
+```javascript
+const unsubscribe = pubsub.subscribe('/');
+unsubscribe();
+```
+
+You can perform blanket operations using the unsubscribe method.  It accepts a channel name, regular-expression, function or an array of any of these together.  If a function is supplied a listener is assumed and this is unsubscribed from wherever it is
+subscribed.  If a string or regular-expression is given then unsubscribe all listeners from those channels.
+
+```javascript
+pubsub.unsubcribe('/');
+pubsub.unsubcribe(['/', '/my-error-channel']);
+pubsub.unsubcribe(myListener);
+pubsub.unsubcribe([myListener1, myListener2, /test[0-9]/, '/test-channel');
+```
+
+
 ## Older node version
 
 This module uses babel in build process to ensure it works on everything above node v4.0 (sorry, we cannot do less than that without rewriting dependencies).  The lead developer spent most of his early programming career working on Lotus Notes Systems and building intranets for IE8! We therefore, understand the need for legacy suport and will endeavour to keep this module backwards compatible.
 
-# jQuery
+## jQuery
 
-The browser module will automatically export a new function to jQuery if present.  To create a new PubSub instance, simply call the function on a dom query with unique name.
-
-```javascript
-jQuery("div.my-app").pubsub("my-app-topics"); 
-```
-
-Here a new PubSub instance is created called **my-app-topics**.  This instance will be connected to all of the elements in the jQuery query.  So, you can subscribe, publish and broadcast to the above:
+The browser module will automatically export a new function to jQuery if present.  To create a new PubSub instance, simply call the function on a dom query.  This will assign a PubSub instance to each item in the collection.
 
 ```javascript
-jQuery("div.my-app").pubsub("my-app-topics").subscribe("/my-channel", event=>{
+jQuery("div.my-app").pubsub().subscribe("/my-channel", event=>{
 	// do something
 }); 
 
-jQuery("div.my-app").pubsub("my-app-topics").publish("/my-channel", "hello"); 
+jQuery("div.my-app").pubsub(").publish("/my-channel", "hello"); 
 
-jQuery("div.my-app").pubsub("my-app-topics").broadcast("/", "Global message"); 
+jQuery("div.my-app").pubsub().broadcast("/", "Global message");
 ```
 
-You can also subscribe, publish and broadcast to any PubSub instance attached to elements in a search by omitting the name.
+The jQuery functions return a the original query so actions can be chained.  This means an unsubscribe function is not passed back.  Unsubscriptions require the use of the unsubscribe function.
 
 ```javascript
-jQuery("div").pubsub().subscribe("/my-channel", event=>{
-	// subscribed to any pubsubs attached to "div"
-}); 
+jQuery("div").pubsub().unsubscript("/my-channel"); 
+jQuery("div").pubsub().unsubscript(myListener); 
 ```
-
-**Note** The browser code is still in beta testing and subject to changes.  It is not 100% unit tested yet and other features need adding.  New features to add include unsubscribe functionality.
 
 ## Angular
 
