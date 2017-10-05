@@ -2,7 +2,7 @@
   "name": "topic-subscribe",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "scripts": {
     "test": "./gulpfile.js test",
     "build": "./gulpfile.js build",
@@ -62,15 +62,17 @@
     "gulp-inject-string": "^1.1.0",
     "gulp-insert-lines": "^0.0.4",
     "gulp-mocha": "^4.3.1",
-    "gulp-mocha-chrome": "^0.1.0",
     "gulp-remove-code": "^1.0.2",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "jquery": "^3.2.1",
-    "jsdoc-api": "^4.0.0",
     "mocha": "^3.5.3",
     "run-sequence": "^2.2.0"
+  },
+  "optionalDependencies": {
+    "gulp-mocha-chrome": "^0.1.0",
+    "jsdoc-api": "^4.0.0"
   },
   "gulp": {
     "source": [
