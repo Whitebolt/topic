@@ -19,8 +19,6 @@ function tryRequire(moduleId, defaultValue) {
 }
 //endRemoveIf(browser)
 
-let counter = 0;
-
 /**
  * Generate a description for a describe clause using the info in an object.
  *
@@ -42,7 +40,7 @@ function getPubSubInstance() {
 	try {
 		return new PubSub();
 	} catch (err) {
-		return $("#mocha").pubsub(counter++);
+		return $("<div>").appendTo($("body")).pubsub();
 	}
 }
 
@@ -329,7 +327,7 @@ function runner() {
 				//endRemoveIf(browser)
 
 				//removeIf(node)
-				it('The vroadcast method should return a jQuery-style object.', ()=>{
+				it('The broadcast method should return a jQuery-style object.', ()=>{
 					assert.instanceOf(topics.broadcast('/my-test-channel', ()=>{}), $);
 					assert.isFunction(topics.broadcast('/my-test-channel', {}).on);
 					assert.isFunction(topics.broadcast('/my-test-channel', {}).trigger);
