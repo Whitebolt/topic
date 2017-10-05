@@ -1,6 +1,6 @@
 {
   "name": "topic-subscribe",
-  "description": "PubSub module with subscription filtering.",
+  "description": "Universal PubSub module for node (including old versions) and browser with subscription filtering and broadcasting.",
   "main": "index.js",
   "version": "0.9.0",
   "scripts": {
@@ -22,7 +22,9 @@
     "Subscription",
     "Topics",
     "Events",
-    "On"
+    "On",
+    "Angular",
+    "jQuery"
   ],
   "author": {
     "email": "hello@whitebolt.net",
