@@ -2,7 +2,7 @@
   "name": "topic-subscribe",
   "description": "PubSub module with subscription filtering.",
   "main": "index.js",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "scripts": {
     "test": "./gulpfile.js test",
     "build": "./gulpfile.js build",

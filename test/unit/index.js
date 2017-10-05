@@ -42,7 +42,7 @@ function getPubSubInstance() {
 	try {
 		return new PubSub();
 	} catch (err) {
-		return $.pubsub(counter++);
+		return $("#mocha").pubsub(counter++);
 	}
 }
 
@@ -52,9 +52,20 @@ function runner() {
 			describe(describeItem(jsDoc, 'PubSub#subscribe'), ()=>{
 				const topics = getPubSubInstance();
 
+				//removeIf(browser)
 				it('The subscribe method should return a function.', ()=>{
 					assert.isFunction(topics.subscribe('/my-test-channel', ()=>{}));
 				});
+				//endRemoveIf(browser)
+
+				//removeIf(node)
+				it('The subscribe method should return a jQuery-style object.', ()=>{
+					assert.instanceOf(topics.subscribe('/my-test-channel', ()=>{}), $);
+					assert.isFunction(topics.subscribe('/my-test-channel', ()=>{}).on);
+					assert.isFunction(topics.subscribe('/my-test-channel', ()=>{}).trigger);
+					assert.isFunction(topics.subscribe('/my-test-channel', ()=>{}).filter);
+				});
+				//endRemoveIf(node)
 
 				describe('Subscribe should throw if wrong types supplied', ()=>{
 					it('The subscribe method should throw if one or more channels not a string.', ()=>{
@@ -77,6 +88,7 @@ function runner() {
 					});
 				});
 
+				//removeIf(browser)
 				it('Subscribe should return a useable unsubscribe function.', ()=>{
 					const topics = getPubSubInstance();
 
@@ -89,6 +101,7 @@ function runner() {
 					topics.publish('/test', 'TEST MESSAGE');
 					assert.isFalse(called, 'Subscription not fired.');
 				});
+				//endRemoveIf(browser)
 
 				it('Subscribe should subscribe to multiple channels when given arrays.', ()=> {
 					const topics = getPubSubInstance();
@@ -144,9 +157,20 @@ function runner() {
 			describe(describeItem(jsDoc, 'PubSub#publish'), ()=>{
 				const topics = getPubSubInstance();
 
+				//removeIf(browser)
 				it('The publish method should return a boolean.', ()=>{
 					assert.isBoolean(topics.publish('/my-test-channel', {}));
 				});
+				//endRemoveIf(browser)
+
+				//removeIf(node)
+				it('The publish method should return a jQuery style object.', ()=>{
+					assert.instanceOf(topics.publish('/my-test-channel', {}), $);
+					assert.isFunction(topics.publish('/my-test-channel', {}).on);
+					assert.isFunction(topics.publish('/my-test-channel', {}).trigger);
+					assert.isFunction(topics.publish('/my-test-channel', {}).filter);
+				});
+				//removeIf(node)
 
 				describe('Publish should throw if wrong types supplied.', ()=>{
 					it('The publish method should throw if one or more channels not a string.', ()=>{
@@ -283,6 +307,7 @@ function runner() {
 					assert.equal(called, 2, 'Filter did not run correctly.');
 				});
 
+				//removeIf(browser)
 				it('Publish should return whether a callback was fired.', ()=>{
 					const topics = getPubSubInstance();
 
@@ -291,14 +316,26 @@ function runner() {
 					assert.isTrue(topics.publish('/test', 'TEST MESSAGE'));
 					assert.isFalse(topics.publish('/extra', 'TEST MESSAGE'));
 				});
+				//endRemoveIf(browser)
 			});
 
 			describe(describeItem(jsDoc, 'PubSub#broadcast'), ()=> {
 				const topics = getPubSubInstance();
 
+				//removeIf(browser)
 				it('The broadcast method should return a boolean.', ()=>{
-					assert.isBoolean(topics.publish('/test', {}));
+					assert.isBoolean(topics.broadcast('/test', {}));
 				});
+				//endRemoveIf(browser)
+
+				//removeIf(node)
+				it('The vroadcast method should return a jQuery-style object.', ()=>{
+					assert.instanceOf(topics.broadcast('/my-test-channel', ()=>{}), $);
+					assert.isFunction(topics.broadcast('/my-test-channel', {}).on);
+					assert.isFunction(topics.broadcast('/my-test-channel', {}).trigger);
+					assert.isFunction(topics.broadcast('/my-test-channel', {}).filter);
+				});
+				//endRemoveIf(node)
 
 				describe('Broadcast should throw if wrong types supplied.', ()=>{
 					it('The broadcast method should throw if one or more channels not a string.', ()=>{
@@ -343,6 +380,7 @@ function runner() {
 						assert.equal(called, 2);
 					});
 
+					//removeIf(browser)
 					it('Broadcast should return whether a callback was fired.', ()=>{
 						const topics = getPubSubInstance();
 
@@ -353,6 +391,7 @@ function runner() {
 						assert.isFalse(topics.broadcast('/extra', 'TEST MESSAGE'));
 						assert.isTrue(topics.broadcast('/', 'TEST MESSAGE'));
 					});
+					//endRemoveIf(browser)
 				});
 
 				it('Subscribed callbacks should fire when message broadcast on ancestor channel and filter matches.', ()=>{

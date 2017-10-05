@@ -136,6 +136,40 @@ pubsub.broadcast('/', "My message to everyone!");
 
 This module uses babel in build process to ensure it works on everything above node v4.0 (sorry, we cannot do less than that without rewriting dependencies).  The lead developer spent most of his early programming career working on Lotus Notes Systems and building intranets for IE8! We therefore, understand the need for legacy suport and will endeavour to keep this module backwards compatible.
 
-# Browser
+# jQuery
 
-The build code will also create a browser version of this module.  The browser version is still in flux so check back for documentation later.  If you need to use it now it can be found in the build folder after build.
+The browser module will automatically export a new function to jQuery if present.  To create a new PubSub instance, simply call the function on a dom query with unique name.
+
+```javascript
+jQuery("div.my-app").pubsub("my-app-topics"); 
+```
+
+Here a new PubSub instance is created called **my-app-topics**.  This instance will be connected to all of the elements in the jQuery query.  So, you can subscribe, publish and broadcast to the above:
+
+```javascript
+jQuery("div.my-app").pubsub("my-app-topics").subscribe("/my-channel", event=>{
+	// do something
+}); 
+
+jQuery("div.my-app").pubsub("my-app-topics").publish("/my-channel", "hello"); 
+
+jQuery("div.my-app").pubsub("my-app-topics").broadcast("/", "Global message"); 
+```
+
+You can also subscribe, publish and broadcast to any PubSub instance attached to elements in a search by omitting the name.
+
+```javascript
+jQuery("div").pubsub().subscribe("/my-channel", event=>{
+	// subscribed to any pubsubs attached to "div"
+}); 
+```
+
+**Note** The browser code is still in beta testing and subject to changes.  It is not 100% unit tested yet and other features need adding.  New features to add include unsubscribe functionality.
+
+## Angular
+
+There is an angular factory in the **TopSubscribe** module called *pubsub* that is automatically exported if angular is detected. This module is still in beta.
+
+## Browser code
+
+All the browser code is in beta but new features should be added if you watch this space.  We wish to have an Angular 2/4 module and a global export too.  Also, we want some way of selecting what is exported.
