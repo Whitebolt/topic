@@ -131,3 +131,11 @@ You can also broadcast, which is the opposite to publishing in terms of bubbling
 ```javascript
 pubsub.broadcast('/', "My message to everyone!"); 
 ```
+
+## Older node version
+
+This module uses babel in build process to ensure it works on everything above node v4.0 (sorry, we cannot do less than that without rewriting dependencies).  The lead developer spent most of his early programming career working on Lotus Notes Systems and building intranets for IE8! We therefore, understand the need for legacy suport and will endeavour to keep this module backwards compatible.
+
+# Browser
+
+The build code will also create a browser version of this module.  The browser version is still in flux so check back for documentation later.  If you need to use it now it can be found in the build folder after build.
