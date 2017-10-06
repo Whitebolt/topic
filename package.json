@@ -81,6 +81,7 @@
       "./lib/util.js",
       "./lib/Private.js",
       "./lib/errors.js",
+      "./lib/Message.js",
       "./lib/index.js",
       "./lib/jquery.js",
       "./lib/angular.js"

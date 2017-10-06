@@ -471,6 +471,168 @@ function runner() {
 					});
 				});
 			});
+
+			describe(describeItem(jsDoc, 'PubSub#mirror'), ()=>{
+				const topics = getPubSubInstance();
+
+				//removeIf(browser)
+				it('The mirror method should return a boolean.', ()=>{
+					assert.isBoolean(topics.mirror({}));
+					assert.isFalse(topics.mirror({}));
+				});
+
+				describe('Messages should be mirrored to pubsub instance', ()=>{
+					it('Correctly formatted messages should just mirror.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>{
+							called++;
+							assert.equal(message.data, 'Hello World')
+						});
+
+						topics.subscribe('/test', message=>called++);
+						topics.subscribe('/test/deep-test', message=>called++);
+						topics.subscribe('/test/deep-test/even-deeper', message=>called++);
+
+						assert.isTrue(topics.mirror({
+							data: 'Hello World',
+							target: ['/test/deep-test'],
+							publish: true
+						}));
+
+						assert.equal(called, 3);
+					});
+
+					it('If broadcast is set then message should broadcast.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+						topics.subscribe('/test', message=>called++);
+						topics.subscribe('/test/deep-test', message=>called++);
+						topics.subscribe('/test/deep-test/even-deeper', message=>called++);
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/'],
+							broadcast: true
+						});
+
+						assert.equal(4, called);
+					});
+				});
+
+				describe('Parsers should modify message and base should change the publish/broadcast channel', ()=>{
+					it('Base should change the broadcast/publish base.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+						topics.subscribe('/test', message=>called++);
+						topics.subscribe('/test/deep-test', message=>called++);
+						topics.subscribe('/test/deep-test/even-deeper', message=>called++);
+
+						topics.subscribe('/external', message=>called++);
+						topics.subscribe('/external/test', message=>called++);
+						topics.subscribe('/external/test/deep-test', message=>called++);
+						topics.subscribe('/external/test/deep-test/even-deeper', message=>called++);
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/'],
+							broadcast: true
+						}, [], '/external');
+
+						assert.equal(4, called);
+					});
+
+					it('Base should be applied to all channels.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+						topics.subscribe('/test2', message=>called++);
+						topics.subscribe('/test1', message=>called++);
+
+						topics.subscribe('/external', message=>called++);
+						topics.subscribe('/external/test1', message=>called++);
+						topics.subscribe('/external/test2', message=>called++);
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/test1', '/test2'],
+							publish: true
+						}, [], '/external');
+
+						assert.equal(4, called);
+					});
+
+					it('Parsers should modify the message.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+						topics.subscribe('/test2', message=>called++);
+						topics.subscribe('/test', message=>called++);
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/test'],
+							publish: true
+						}, [message=>{
+							message.target = ['/test2'];
+							return message;
+						}]);
+
+						assert.equal(called, 2);
+					});
+
+					it('Parsers should receive the message and base.', ()=>{
+						const topics = getPubSubInstance();
+						const originalMessage = {
+							data: 'Hello World',
+							target: ['/test'],
+							publish: true
+						};
+
+						topics.mirror(originalMessage, [(message, base)=>{
+							assert.deepEqual(message, originalMessage);
+							assert.equal(base, '/external');
+							return message;
+						}], '/external');
+					});
+
+					it('Parsers should fire in sequence', ()=> {
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/test2', message=>{
+							called++;
+							assert.equal('Modified Message', message.data);
+						});
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/test'],
+							publish: true
+						}, [message=>{
+							message.data = 'Modified Message';
+							return message;
+						}, message=>{
+							message.target = ['/test2'];
+							return message;
+						}]);
+
+						assert.equal(1, called);
+					});
+				});
+				//endRemoveIf(browser)
+			});
+
+			describe(describeItem(jsDoc, 'PubSub#source'), ()=>{
+
+			});
 		});
 	});
 

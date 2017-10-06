@@ -115,12 +115,12 @@ pubsub.publish('/interesting-messages', "My message");
 
 This will publish a message to the **/interesting-messages** channel.
 
-## Event instances
+## Message instances
 
-The subscription callbacks will receive an event object with the following properties:
+The subscription callbacks will receive an message object with the following properties:
 
 * **data** {*any*} The value that was published
-* **target** {*string*} The channel that is receiving it (in-case it has bubbled or a callback can fire against muliple channels).
+* **target** {*string*} The channel that is receiving it (in-case it has bubbled or a callback can fire against multiple channels).
 
 ## Broadcasting
 
