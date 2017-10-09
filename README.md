@@ -87,6 +87,10 @@ pubsub.subscribe([
 
 The channels parameter can be a string, an array, a set or a regular expression. Each item in an array / set can be a string or a regular expression.
 
+## Full API
+
+ * [View documentation on all PubSub Methods](./docs/PubSub/index.md)
+
 ## Regular expressions
 
 You can use a regular expression when subscribing to a channel instead of a basic string.  However, if you do they will not receive broadcast messages as there is no consistent way to calculate ancestor channels of a regular expression derived channel.
