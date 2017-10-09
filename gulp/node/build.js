@@ -36,7 +36,10 @@ function fn(gulp, done) {
 		.pipe(add.after('\'use strict\';\n', polyfill))
 		.pipe(concat(settings.name + '.node.js'))
 		.pipe(gulp.dest(process.cwd()+'/'+settings.dest))
-		.on('end', ()=>gulp.src(settings.test.root + settings.test.unit + '/*.js')
+		.on('end', ()=>gulp.src([
+			settings.test.root + settings.test.mocks + '/node/*.js',
+			settings.test.root + settings.test.unit + '/*.js'
+		])
 			.pipe(concat('index.js'))
 			.pipe(removeCode({node:true}))
 			.pipe(babel(babelConfig))

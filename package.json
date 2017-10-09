@@ -90,7 +90,8 @@
     "test": {
       "root": "./test",
       "unit": "/unit",
-      "build": "/build"
+      "build": "/build",
+      "mocks": "/mocks"
     },
     "babel": {
       "presets": [

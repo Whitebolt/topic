@@ -8,6 +8,7 @@ const packageInfo = require(process.cwd()+'/package.json');
 const jsDoc = tryRequire('./index.json');
 const PubSub = require(process.cwd());
 const chai = require('chai');
+const EventEmitter = require('events');
 const assert = chai.assert;
 
 function tryRequire(moduleId, defaultValue) {
@@ -65,7 +66,7 @@ function runner() {
 				});
 				//endRemoveIf(node)
 
-				describe('Subscribe should throw if wrong types supplied', ()=>{
+				describe('Subscribe should throw if wrong types supplied.', ()=>{
 					it('The subscribe method should throw if one or more channels not a string.', ()=>{
 						assert.throws(()=>topics.subscribe(null, ()=>{}), TypeError);
 						assert.throws(()=>topics.subscribe(true, ()=>{}), TypeError);
@@ -429,7 +430,7 @@ function runner() {
 				});
 				//endRemoveIf(node)
 
-				describe('Unsubscribe should unsubscribe given listeners or all listeners on a given channel', ()=>{
+				describe('Unsubscribe should unsubscribe given listeners or all listeners on a given channel.', ()=>{
 					it('Unsubscribe should remove all listeners on given channel.', ()=>{
 						let called = 0;
 						topics.subscribe('/test', ()=>called++);
@@ -480,8 +481,18 @@ function runner() {
 					assert.isBoolean(topics.mirror({}));
 					assert.isFalse(topics.mirror({}));
 				});
+				//endRemoveIf(browser)
 
-				describe('Messages should be mirrored to pubsub instance', ()=>{
+				//removeIf(node)
+				it('The mirror method should return a jQuery-style object.', ()=>{
+					assert.instanceOf(topics.unsubscribe('/test'), $);
+					assert.isFunction(topics.unsubscribe('/test').on);
+					assert.isFunction(topics.unsubscribe(()=>{}).trigger);
+					assert.isFunction(topics.unsubscribe(()=>{}).filter);
+				});
+				//endRemoveIf(node)
+
+				describe('Messages should be mirrored to pubsub instance.', ()=>{
 					it('Correctly formatted messages should just mirror.', ()=>{
 						const topics = getPubSubInstance();
 						let called = 0;
@@ -495,11 +506,11 @@ function runner() {
 						topics.subscribe('/test/deep-test', message=>called++);
 						topics.subscribe('/test/deep-test/even-deeper', message=>called++);
 
-						assert.isTrue(topics.mirror({
+						topics.mirror({
 							data: 'Hello World',
 							target: ['/test/deep-test'],
 							publish: true
-						}));
+						});
 
 						assert.equal(called, 3);
 					});
@@ -523,7 +534,79 @@ function runner() {
 					});
 				});
 
-				describe('Parsers should modify message and base should change the publish/broadcast channel', ()=>{
+				describe('Messages have default data and publish/broadcast.', ()=>{
+					it('Data should default to empty object.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/test', message=>{
+							called++;
+							assert.deepEqual(message, {});
+						});
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/test']
+						});
+
+						assert.equal(1, called);
+					});
+
+					it('Target channel should default to base if no channels given.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/test', message=>called++);
+
+						topics.mirror({data: 'Hello World'}, [], '/test');
+
+						assert.equal(1, called);
+					});
+
+					it('Target channel should default to root "/" if channels or base given.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+
+						topics.mirror({data: 'Hello World'});
+
+						assert.equal(1, called);
+					});
+
+					it('Message data should default to empty object when message supplied', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>{
+							called++;
+							assert.deepEqual(message, {});
+						});
+
+						topics.mirror();
+
+						assert.equal(1, called);
+					});
+
+					it('Publish/Broadcast should default to publish.', ()=>{
+						const topics = getPubSubInstance();
+						let called = 0;
+
+						topics.subscribe('/', message=>called++);
+						topics.subscribe('/test', message=>called++);
+						topics.subscribe('/test/deep-test', message=>called++);
+						topics.subscribe('/test/deep-test/even-deeper', message=>called++);
+
+						topics.mirror({
+							data: 'Hello World',
+							target: ['/test/deep-test']
+						});
+
+						assert.equal(3, called);
+					});
+				});
+
+				describe('Parsers should modify message and base should change the publish/broadcast channel.', ()=>{
 					it('Base should change the broadcast/publish base.', ()=>{
 						const topics = getPubSubInstance();
 						let called = 0;
@@ -603,7 +686,7 @@ function runner() {
 						}], '/external');
 					});
 
-					it('Parsers should fire in sequence', ()=> {
+					it('Parsers should fire in sequence.', ()=> {
 						const topics = getPubSubInstance();
 						let called = 0;
 
@@ -627,11 +710,161 @@ function runner() {
 						assert.equal(1, called);
 					});
 				});
-				//endRemoveIf(browser)
 			});
 
 			describe(describeItem(jsDoc, 'PubSub#source'), ()=>{
+				describe('Default sources should work out-of-the-box.', ()=>{
+					describe('Source should accept native node style emitters as sources.', ()=>{
 
+						it('Events from node native emitters should mirror according to base requested.', ()=> {
+							const events = new EventEmitter();
+							const topics = getPubSubInstance();
+
+							let called = 0;
+
+							topics.source(events, 'load', {base: '/loaded'});
+							topics.subscribe('/loaded', message=>called++);
+
+							events.emit('load');
+
+							assert.equal(1, called);
+						});
+
+						it('Events from node native emitters should mirror using the supplied parsers.', ()=> {
+							const events = new EventEmitter();
+							const topics = getPubSubInstance();
+
+							let called = 0;
+							let data = {
+								target: 'base object',
+								type: 'fire-up'
+							};
+
+							topics.source(events, 'load', {base: '/loaded', parsers:(message, base)=>{
+								return {
+									data: message,
+									target: '/server',
+									broadcast: true
+								};
+							}});
+
+							topics.subscribe('/loaded/server', message=>called++);
+							topics.subscribe('/loaded/server/base', message=>{
+								assert.deepEqual(message.data, data);
+								called++;
+							});
+
+							events.emit('load', data);
+
+							assert.equal(2, called);
+						});
+					});
+
+					describe('Source should accept PubSub style emitters as sources.', ()=>{
+						it('Messages from PubSub should just mirror.', ()=> {
+							const topics1 = getPubSubInstance();
+							const topics2 = getPubSubInstance();
+
+							let called = 0;
+
+							topics2.subscribe('/', message=>called++);
+							topics1.publish('/test');
+							assert.equal(called, 0);
+							//removeIf(node)
+							topics2.source(topics1, {type: "PubSub"});
+							//endRemoveIf(node)
+							//removeIf(browser)
+							topics2.source(topics1);
+							//endRemoveIf(browser)
+							topics1.publish('/test');
+							assert.equal(called, 1);
+						});
+					});
+
+					//removeIf(node)
+					describe('Source should accept jQuery style emitters as sources.', ()=>{
+						it('Events from jQuery emitters should mirror though via source.', ()=> {
+							const events = jQuery("script");
+							const topics = getPubSubInstance();
+
+							let called = 0;
+
+							topics.source(events, 'test-event', {parsers:message=>{
+								message.target = '/test'
+							}});
+							topics.subscribe('/test', message=>called++);
+
+							events.trigger('test-event');
+
+							assert.equal(called, events.length);
+						});
+					});
+
+					describe('Source should accept DOM style emitters as sources.', ()=>{
+						it('Events from DOM emitters should mirror though via source.', ()=> {
+							const events = jQuery("script").get(0);
+							const topics = getPubSubInstance();
+
+							let called = 0;
+
+							topics.source(events, 'test-event', {parsers:message=>{
+								message.target = '/test'
+							}});
+							topics.subscribe('/test', message=>called++);
+
+							events.dispatchEvent(new Event('test-event'));
+
+							assert.equal(called, 1);
+						});
+					});
+					//endRemoveIf(node)
+
+					describe('User defined sources can be used via options method "on".', ()=>{
+						it('Events from node native emitters should mirror according to base requested.', ()=> {
+							const events = new EventEmitter();
+							const topics = getPubSubInstance();
+
+							let called = 0;
+
+							topics.source(events, 'load', {base: '/loaded', on:'once'});
+							topics.subscribe('/loaded', message=>called++);
+
+							events.emit('load');
+							events.emit('load');
+
+							assert.equal(called, 1);
+						});
+					});
+				});
+
+				describe('PubSub sources should accept a filter.', ()=>{
+					it('Filters should be used if present.', ()=> {
+						const topics1 = getPubSubInstance();
+						const topics2 = getPubSubInstance();
+
+						let called = 0;
+
+						topics2.subscribe('/', message=>called++);
+						topics2.source(topics1, {
+							filter:  {level:{$gt:3}}
+							//removeIf(node)
+							, type: "PubSub"
+							//endRemoveIf(node)
+						});
+
+						topics1.publish('/errors', {
+							type: 'error',
+							level: 3
+						});
+
+						topics1.publish('/errors', {
+							type: 'error',
+							level: 4
+						});
+
+						assert.equal(1, called);
+					});
+				});
 			});
 		});
 	});

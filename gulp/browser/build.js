@@ -58,7 +58,10 @@ function fn(gulp, done) {
 			.pipe(iife())
 			.pipe(sourcemaps.write('./'))
 			.pipe(gulp.dest(settings.dest))
-			.on('end', ()=>gulp.src(settings.test.root + settings.test.unit + '/*.js')
+			.on('end', ()=>gulp.src([
+				settings.test.root + settings.test.mocks + '/browser/*.js',
+				settings.test.root + settings.test.unit + '/*.js'
+			])
 				.pipe(concat('browser.js'))
 				.pipe(removeCode({browser:true}))
 				.pipe(babel(babelConfig))
