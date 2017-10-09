@@ -63,6 +63,7 @@
     "gulp-iife": "^0.3.0",
     "gulp-inject-string": "^1.1.0",
     "gulp-insert-lines": "^0.0.4",
+    "gulp-jsdoc3": "^1.0.1",
     "gulp-mocha": "^4.3.1",
     "gulp-remove-code": "^1.0.2",
     "gulp-sourcemaps": "^2.6.1",
@@ -92,6 +93,14 @@
       "unit": "/unit",
       "build": "/build",
       "mocks": "/mocks"
+    },
+    "jsdoc": {
+      "opts": {
+        "destination": "./docs/gen"
+      },
+      "plugins": [
+        "plugins/markdown"
+      ]
     },
     "babel": {
       "presets": [
