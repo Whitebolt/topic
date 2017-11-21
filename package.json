@@ -2,15 +2,13 @@
   "name": "topic-subscribe",
   "description": "Universal PubSub module for node (including old versions) and browser with subscription filtering and broadcasting.",
   "main": "index.js",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "scripts": {
     "test": "./gulpfile.js test",
-    "build": "./gulpfile.js build",
     "build-browser": "./gulpfile.js browser:build",
     "build-node": "./gulpfile.js node:build",
     "test-browser": "./gulpfile.js browser:test",
-    "test-node": "./gulpfile.js node:test",
-    "postinstall": "./gulpfile.js build"
+    "test-node": "./gulpfile.js node:test"
   },
   "engines": ">=4.0.0",
   "repository": {
