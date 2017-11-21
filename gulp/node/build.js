@@ -10,7 +10,6 @@ const babel = require('gulp-babel');
 const concat = require('gulp-concat');
 const removeCode = require('gulp-remove-code');
 const uglify = require('gulp-uglify');
-
 const nodeVersion = parseFloat(process.versions.node.split('.').slice(0, 2).join('.'));
 
 let polyfill = '';

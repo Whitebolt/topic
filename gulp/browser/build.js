@@ -9,10 +9,10 @@ const add = require('gulp-inject-string');
 const babel = require('gulp-babel');
 const concat = require('gulp-concat');
 const gutil = require('gulp-util');
-const iife = require("gulp-iife");
 const removeCode = require('gulp-remove-code');
 const sourcemaps = require('gulp-sourcemaps');
 const uglify = require('gulp-uglify');
+const iife = require('gulp-iife');
 
 const nodeVersion = parseFloat(process.versions.node.split('.').slice(0, 2).join('.'));
 
